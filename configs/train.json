@@ -1,0 +1,95 @@
+{
+  "config_version": "1.0",
+  "split": "train",
+  "episodes": [
+    {
+      "seed": 1000,
+      "config": {
+        "n_ledger_rows": 400,
+        "n_documents": 48,
+        "n_errors": 0
+      }
+    },
+    {
+      "seed": 1001,
+      "config": {
+        "n_ledger_rows": 900,
+        "n_documents": 120,
+        "n_errors": 0
+      }
+    },
+    {
+      "seed": 1002,
+      "config": {
+        "n_ledger_rows": 400,
+        "n_documents": 48,
+        "n_errors": 2
+      }
+    },
+    {
+      "seed": 1003,
+      "config": {
+        "n_ledger_rows": 600,
+        "n_documents": 60,
+        "n_errors": 4
+      }
+    },
+    {
+      "seed": 1004,
+      "config": {
+        "n_ledger_rows": 800,
+        "n_documents": 90,
+        "n_errors": 6
+      }
+    },
+    {
+      "seed": 1005,
+      "config": {
+        "n_ledger_rows": 1200,
+        "n_documents": 140,
+        "n_errors": 8
+      }
+    },
+    {
+      "seed": 1006,
+      "config": {
+        "n_ledger_rows": 2000,
+        "n_documents": 200,
+        "n_errors": 12
+      }
+    },
+    {
+      "seed": 1007,
+      "config": {
+        "n_ledger_rows": 300,
+        "n_documents": 30,
+        "n_errors": 3,
+        "timezone": "-03:30"
+      }
+    },
+    {
+      "seed": 1008,
+      "config": {
+        "n_ledger_rows": 700,
+        "n_documents": 80,
+        "n_errors": 5,
+        "base_currency": "USD",
+        "foreign_currencies": [
+          "EUR",
+          "KZT"
+        ]
+      }
+    },
+    {
+      "seed": 1009,
+      "config": {
+        "n_ledger_rows": 500,
+        "n_documents": 64,
+        "n_errors": 4,
+        "timezone": "+00:00",
+        "period_start": "2026-07-01",
+        "period_days": 31
+      }
+    }
+  ]
+}

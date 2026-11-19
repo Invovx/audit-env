@@ -1,0 +1,5 @@
+# Python 3.11. Runtime uses only the standard library; pytest is for the test suite.
+pytest==8.3.4
+iniconfig==2.0.0
+packaging==24.2
+pluggy==1.5.0

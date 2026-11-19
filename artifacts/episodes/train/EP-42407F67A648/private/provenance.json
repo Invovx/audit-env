@@ -1,0 +1,461 @@
+{
+  "generator_version": "1.0.0",
+  "schema_version": "1.0",
+  "episode_id": "EP-42407F67A648",
+  "seed": 1000,
+  "config": {
+    "n_ledger_rows": 400,
+    "n_documents": 48,
+    "n_errors": 0,
+    "error_types": [
+      "duplicate_invoice",
+      "period_cutoff_error"
+    ],
+    "base_currency": "KZT",
+    "foreign_currencies": [
+      "USD",
+      "EUR"
+    ],
+    "timezone": "+05:00",
+    "period_start": "2026-01-01",
+    "period_days": 90,
+    "amount_tolerance_minor": 100,
+    "include_distractors": true
+  },
+  "error_plan": [],
+  "company": {
+    "customers": [
+      {
+        "entity_id": "CUST-001",
+        "currency": "KZT"
+      },
+      {
+        "entity_id": "CUST-002",
+        "currency": "KZT"
+      },
+      {
+        "entity_id": "CUST-003",
+        "currency": "KZT"
+      },
+      {
+        "entity_id": "CUST-004",
+        "currency": "KZT"
+      },
+      {
+        "entity_id": "CUST-005",
+        "currency": "KZT"
+      },
+      {
+        "entity_id": "CUST-006",
+        "currency": "KZT"
+      },
+      {
+        "entity_id": "CUST-007",
+        "currency": "USD"
+      },
+      {
+        "entity_id": "CUST-008",
+        "currency": "KZT"
+      },
+      {
+        "entity_id": "CUST-009",
+        "currency": "KZT"
+      },
+      {
+        "entity_id": "CUST-010",
+        "currency": "KZT"
+      },
+      {
+        "entity_id": "CUST-011",
+        "currency": "KZT"
+      },
+      {
+        "entity_id": "CUST-012",
+        "currency": "EUR"
+      }
+    ],
+    "suppliers": [
+      "SUP-001",
+      "SUP-002",
+      "SUP-003",
+      "SUP-004",
+      "SUP-005",
+      "SUP-006"
+    ]
+  },
+  "stories": [
+    {
+      "story": 1,
+      "kind": "boundary_start",
+      "tags": [],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-00001"
+        }
+      ]
+    },
+    {
+      "story": 2,
+      "kind": "tz_head_utc",
+      "tags": [],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-00002"
+        }
+      ]
+    },
+    {
+      "story": 3,
+      "kind": "split",
+      "tags": [],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-00023"
+        },
+        {
+          "table": "payments",
+          "id": "DOC-00030"
+        },
+        {
+          "table": "payments",
+          "id": "DOC-00038"
+        },
+        {
+          "table": "payments",
+          "id": "DOC-00039"
+        }
+      ]
+    },
+    {
+      "story": 4,
+      "kind": "combined",
+      "tags": [],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-00003"
+        },
+        {
+          "table": "invoices",
+          "id": "DOC-00005"
+        },
+        {
+          "table": "payments",
+          "id": "DOC-00013"
+        }
+      ]
+    },
+    {
+      "story": 5,
+      "kind": "boundary_end",
+      "tags": [],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-00048"
+        }
+      ]
+    },
+    {
+      "story": 6,
+      "kind": "return",
+      "tags": [],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-00006"
+        },
+        {
+          "table": "invoices",
+          "id": "DOC-00008"
+        },
+        {
+          "table": "payments",
+          "id": "DOC-00015"
+        }
+      ]
+    },
+    {
+      "story": 7,
+      "kind": "paid",
+      "tags": [],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-00012"
+        },
+        {
+          "table": "payments",
+          "id": "DOC-00036"
+        }
+      ]
+    },
+    {
+      "story": 8,
+      "kind": "open",
+      "tags": [],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-00047"
+        }
+      ]
+    },
+    {
+      "story": 9,
+      "kind": "return",
+      "tags": [],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-00032"
+        },
+        {
+          "table": "invoices",
+          "id": "DOC-00034"
+        },
+        {
+          "table": "payments",
+          "id": "DOC-00042"
+        }
+      ]
+    },
+    {
+      "story": 10,
+      "kind": "combined",
+      "tags": [],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-00010"
+        },
+        {
+          "table": "invoices",
+          "id": "DOC-00014"
+        },
+        {
+          "table": "payments",
+          "id": "DOC-00019"
+        }
+      ]
+    },
+    {
+      "story": 11,
+      "kind": "paid",
+      "tags": [],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-00025"
+        },
+        {
+          "table": "payments",
+          "id": "DOC-00043"
+        }
+      ]
+    },
+    {
+      "story": 12,
+      "kind": "paid",
+      "tags": [],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-00029"
+        },
+        {
+          "table": "payments",
+          "id": "DOC-00037"
+        }
+      ]
+    },
+    {
+      "story": 13,
+      "kind": "paid",
+      "tags": [],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-00009"
+        },
+        {
+          "table": "payments",
+          "id": "DOC-00018"
+        }
+      ]
+    },
+    {
+      "story": 14,
+      "kind": "recurring",
+      "tags": [],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-00007"
+        },
+        {
+          "table": "invoices",
+          "id": "DOC-00016"
+        },
+        {
+          "table": "invoices",
+          "id": "DOC-00020"
+        },
+        {
+          "table": "payments",
+          "id": "DOC-00021"
+        },
+        {
+          "table": "payments",
+          "id": "DOC-00027"
+        }
+      ]
+    },
+    {
+      "story": 15,
+      "kind": "paid",
+      "tags": [],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-00011"
+        },
+        {
+          "table": "payments",
+          "id": "DOC-00022"
+        }
+      ]
+    },
+    {
+      "story": 16,
+      "kind": "open",
+      "tags": [],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-00024"
+        }
+      ]
+    },
+    {
+      "story": 17,
+      "kind": "paid",
+      "tags": [],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-00028"
+        },
+        {
+          "table": "payments",
+          "id": "DOC-00040"
+        }
+      ]
+    },
+    {
+      "story": 18,
+      "kind": "paid",
+      "tags": [],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-00017"
+        },
+        {
+          "table": "payments",
+          "id": "DOC-00026"
+        }
+      ]
+    },
+    {
+      "story": 19,
+      "kind": "open",
+      "tags": [],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-00004"
+        }
+      ]
+    },
+    {
+      "story": 20,
+      "kind": "paid",
+      "tags": [],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-00041"
+        },
+        {
+          "table": "payments",
+          "id": "DOC-00045"
+        }
+      ]
+    },
+    {
+      "story": 21,
+      "kind": "paid",
+      "tags": [],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-00033"
+        },
+        {
+          "table": "payments",
+          "id": "DOC-00046"
+        }
+      ]
+    },
+    {
+      "story": 22,
+      "kind": "split",
+      "tags": [],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-00031"
+        },
+        {
+          "table": "payments",
+          "id": "DOC-00035"
+        },
+        {
+          "table": "payments",
+          "id": "DOC-00044"
+        }
+      ]
+    }
+  ],
+  "clean_books_checks": {
+    "balanced_by_currency": {
+      "EUR": {
+        "debit_minor": 3568000,
+        "credit_minor": 3568000
+      },
+      "KZT": {
+        "debit_minor": 10090629781,
+        "credit_minor": 10090629781
+      }
+    },
+    "ar_open_minor_by_currency": {
+      "EUR": 858000,
+      "KZT": 2341000000
+    },
+    "booked_revenue_in_base_minor": 6746547041,
+    "ledger_rows_before_errors": 400,
+    "documents_before_errors": 48
+  },
+  "mutations": [],
+  "final_counts": {
+    "ledger_rows": 400,
+    "invoices": 28,
+    "payments": 20,
+    "documents": 48,
+    "fx_rates": 148
+  }
+}
