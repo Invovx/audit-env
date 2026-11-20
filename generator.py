@@ -39,7 +39,9 @@ ACC_CASH = "1000"
 ACC_AR = "1100"
 ACC_PAYROLL_TAX = "2300"
 ACC_EQUITY = "3000"
+ACC_UNAPPLIED = "2100"
 ACC_REVENUE = "4000"
+ACC_FX = "4900"
 ACC_RETURNS = "4100"
 ACC_PAYROLL = "5200"
 EXPENSE_ACCOUNTS = ("5100", "5300", "5400", "5500")
@@ -166,10 +168,12 @@ class PaymentRec:
     order: int
     payment_id: str = ""
     doc_id: str = ""
+    posted: Optional[list] = None  # foreign amounts actually posted to AR per allocation (mutations)
+    excess: int = 0                # legitimate overpayment kept as unapplied cash
 
     @property
     def amount_minor(self) -> int:
-        return sum(amount for _, amount in self.allocations)
+        return sum(amount for _, amount in self.allocations) + self.excess
 
 
 @dataclass(eq=False)
@@ -247,6 +251,7 @@ class Books:
     fx: list = field(default_factory=list)
     story_log: list = field(default_factory=list)
     used: set = field(default_factory=set)
+    translator: Any = None
     _order: int = 0
     _story: int = 0
 
@@ -429,6 +434,26 @@ def _build_combined(books: Books, rng: DetRng, spec: StorySpec, max_docs: int) -
     return 3
 
 
+def _build_overpaid(books: Books, rng: DetRng, spec: StorySpec, max_docs: int) -> int:
+    """Legitimate overpayment: the customer pays more than the invoice; the excess stays
+    in unapplied cash (2100) until it is refunded or applied to a future invoice."""
+    if max_docs < 2:
+        return _build_open(books, rng, spec, max_docs)
+    ctx = books.ctx
+    story = books.new_story()
+    party = rng.choice(books.customers)
+    lag = rng.randint(3, min(30, ctx.days - 2))
+    day = _pick_day(ctx, rng, spec.window, hi=ctx.days - 1 - lag)
+    issued = ctx.start + timedelta(days=day, seconds=_tod(rng))
+    inv = _make_invoice(books, rng, party, issued, _make_lines(rng, party.currency), story, spec,
+                        extra_tags=("overpaid",))
+    ts = ctx.start + timedelta(days=day + lag, seconds=_tod(rng))
+    pay = _make_payment(books, party, ts, [(inv, inv.total_minor)], story)
+    pay.excess = max(1, inv.total_minor * rng.randint(2, 30) // 100)
+    books.log_story(story, "overpaid", spec, [inv, pay])
+    return 2
+
+
 def _build_recurring(books: Books, rng: DetRng, spec: StorySpec, max_docs: int) -> int:
     """Legitimate repeated amounts: the same customer billed the same amount 3 times."""
     if max_docs < 3:
@@ -502,6 +527,7 @@ STORY_BUILDERS: dict = {
     "return": _build_return,
     "combined": _build_combined,
     "recurring": _build_recurring,
+    "overpaid": _build_overpaid,
     "boundary_start": _special_builder("boundary_start"),
     "boundary_end": _special_builder("boundary_end"),
     "tz_head_utc": _special_builder("tz_head_utc"),
@@ -509,12 +535,14 @@ STORY_BUILDERS: dict = {
     "out_of_prev": _special_builder("out_of_prev"),
 }
 STORY_MIN_DOCS = {"open": 1, "paid": 2, "split": 2, "return": 3, "combined": 3, "recurring": 3,
+                  "overpaid": 2,
                   "boundary_start": 1, "boundary_end": 1, "tz_head_utc": 1,
                   "out_of_next": 1, "out_of_prev": 1}
 STORY_MAX_DOCS = {"open": 1, "paid": 2, "split": 4, "return": 3, "combined": 3, "recurring": 6,
+                  "overpaid": 2,
                   "boundary_start": 1, "boundary_end": 1, "tz_head_utc": 1,
                   "out_of_next": 1, "out_of_prev": 1}
-FORCED_DISTRACTORS = ("recurring", "split", "return", "combined", "boundary_start",
+FORCED_DISTRACTORS = ("recurring", "split", "return", "combined", "overpaid", "boundary_start",
                       "boundary_end", "tz_head_utc", "out_of_next", "out_of_prev")
 REGULAR_WEIGHTS = (("open", 25), ("paid", 40), ("split", 15), ("return", 8),
                    ("combined", 6), ("recurring", 6))
@@ -624,54 +652,166 @@ class FxLookup:
 # --------------------------------------------------------------------------- #
 # Ledger derivation
 # --------------------------------------------------------------------------- #
-def build_ledger(books: Books) -> tuple:
-    """Derive ledger rows from the records.  Returns (rows sorted by time, index)."""
+def local_date(ts: datetime, ctx: PeriodCtx) -> str:
+    """Company-local calendar date of an instant (the FX rate-date rule)."""
+    return ts.astimezone(ctx.tz).date().isoformat()
+
+
+class Translator:
+    """Translates foreign-currency documents into the base (functional) currency.
+
+    Published rules (policy.json):
+    * an invoice is booked at the rate of the local date of its posting;
+    * a credit note and every allocation of a payment relieve receivables at the
+      historical rate of the invoice they refer to; the allocation that settles an
+      invoice completely relieves exactly the remaining base balance (no residue);
+    * cash is booked at the rate of the payment date;
+    * the difference between cash and relieved receivables goes to 4900.
+    """
+
+    def __init__(self, books: Books) -> None:
+        self.books = books
+        self.ctx = books.ctx
+        self.lookup = FxLookup(books.fx)
+        self.digits = S.SUPPORTED_CURRENCIES
+        self.rate_overrides: dict = {}   # (id(record), purpose) -> rate string (FX mutators)
+
+    def rate(self, currency: str, ts: datetime, record: Any = None, purpose: str = "") -> str:
+        override = self.rate_overrides.get((id(record), purpose))
+        if override is not None:
+            return override
+        return self.lookup.rate(currency, self.ctx.base, local_date(ts, self.ctx))
+
+    def convert(self, amount: int, currency: str, rate: str) -> int:
+        if currency == self.ctx.base:
+            return amount
+        return S.convert_minor(amount, rate, self.digits[currency], self.digits[self.ctx.base])
+
+    def invoice_rate(self, inv: InvoiceRec) -> Optional[str]:
+        if inv.currency == self.ctx.base or inv.booked_at is None:
+            return None
+        return self.rate(inv.currency, inv.booked_at, inv, "booking")
+
+    def plan(self) -> dict:
+        """Base amounts for every posting, computed in chronological order."""
+        out: dict = {"invoice": {}, "credit": {}, "relief": {}, "unapplied": {}, "excess": {},
+                     "cash": {}}
+        outstanding: dict = {}       # id(invoice) -> [foreign, base]
+        events = []
+        for inv in self.books.invoices:
+            if inv.booked_at is None:
+                continue
+            events.append((inv.booked_at, 0, inv.order, inv))
+        for pay in self.books.payments:
+            events.append((pay.ts, 1, pay.order, pay))
+        events.sort(key=lambda e: e[:3])
+
+        def relieve(inv: InvoiceRec, amount: int) -> int:
+            state = outstanding.get(id(inv))
+            if state is None:              # allocation to an invoice not booked in this period
+                rate = self.rate(inv.currency, inv.issued_at, inv, "booking")
+                return self.convert(amount, inv.currency, rate)
+            if amount == state[0]:
+                base = state[1]
+            else:
+                base = self.convert(amount, inv.currency, self.invoice_rate(inv) or "1.0000")
+            state[0] -= amount
+            state[1] -= base
+            return base
+
+        for _, kind, _, rec in events:
+            if kind == 0 and rec.kind == "invoice":
+                base = self.convert(rec.total_minor, rec.currency, self.invoice_rate(rec) or "1.0000")
+                out["invoice"][id(rec)] = base
+                outstanding[id(rec)] = [rec.total_minor, base]
+            elif kind == 0:                                     # credit note
+                target = rec.lines[0].ref
+                out["credit"][id(rec)] = relieve(target, -rec.total_minor)
+            else:
+                rate = None if rec.currency == self.ctx.base else self.rate(rec.currency, rec.ts, rec, "cash")
+                out["cash"][id(rec)] = self.convert(rec.amount_minor, rec.currency, rate or "1.0000")
+                for position, (inv, amount) in enumerate(rec.allocations):
+                    posted = amount if rec.posted is None else rec.posted[position]
+                    out["relief"][(id(rec), position)] = relieve(inv, posted) if posted > 0 else None
+                    left = amount - posted
+                    out["unapplied"][(id(rec), position)] = (
+                        self.convert(left, rec.currency, rate or "1.0000") if left > 0 else None)
+                out["excess"][id(rec)] = (self.convert(rec.excess, rec.currency, rate or "1.0000")
+                                          if rec.excess > 0 else None)
+        out["outstanding"] = outstanding
+        return out
+
+
+def build_ledger(books: Books, translator: Optional[Translator] = None) -> tuple:
+    """Derive ledger rows (all in the base currency).  Returns (rows sorted by time, index)."""
     ctx = books.ctx
+    translator = translator or getattr(books, "translator", None) or Translator(books)
+    plan = translator.plan()
+    base = ctx.base
     rows: list = []
 
-    def add(ts, offset, account, debit, credit, currency, entity, invoice, payment, owner, role):
-        rows.append(LedgerRow(ts, offset, account, debit, credit, currency, entity, invoice,
+    def add(ts, offset, account, debit, credit, entity, invoice, payment, owner, role):
+        rows.append(LedgerRow(ts, offset, account, debit, credit, base, entity, invoice,
                               payment, owner, role, len(rows)))
 
     for jr in books.journals:
         for account, debit, credit, entity in jr.legs:
-            add(jr.ts, ctx.tz, account, debit, credit, jr.currency, entity, None, None, jr, "journal")
+            add(jr.ts, ctx.tz, account, debit, credit, entity, None, None, jr, "journal")
     for inv in books.invoices:
         if inv.booked_at is None:
             continue
-        amount = inv.total_minor
         if inv.kind == "invoice":
-            add(inv.booked_at, inv.display_offset, ACC_AR, amount, 0, inv.currency,
-                inv.entity_id, inv, None, inv, "ar")
-            add(inv.booked_at, inv.display_offset, ACC_REVENUE, 0, amount, inv.currency,
-                inv.entity_id, inv, None, inv, "revenue")
+            amount = plan["invoice"][id(inv)]
+            add(inv.booked_at, inv.display_offset, ACC_AR, amount, 0, inv.entity_id, inv, None, inv, "ar")
+            add(inv.booked_at, inv.display_offset, ACC_REVENUE, 0, amount, inv.entity_id, inv, None,
+                inv, "revenue")
         else:
-            add(inv.booked_at, inv.display_offset, ACC_RETURNS, -amount, 0, inv.currency,
-                inv.entity_id, inv, None, inv, "contra")
-            add(inv.booked_at, inv.display_offset, ACC_AR, 0, -amount, inv.currency,
-                inv.entity_id, inv, None, inv, "ar")
+            amount = plan["credit"][id(inv)]
+            add(inv.booked_at, inv.display_offset, ACC_RETURNS, amount, 0, inv.entity_id, inv, None,
+                inv, "contra")
+            add(inv.booked_at, inv.display_offset, ACC_AR, 0, amount, inv.entity_id, inv, None, inv, "ar")
     for pay in books.payments:
-        add(pay.ts, ctx.tz, ACC_CASH, pay.amount_minor, 0, pay.currency, pay.entity_id,
-            None, pay, pay, "cash")
-        for position, (inv, amount) in enumerate(pay.allocations):
-            add(pay.ts, ctx.tz, ACC_AR, 0, amount, pay.currency, pay.entity_id, inv, pay,
-                pay, f"ar:{position}")
+        cash = plan["cash"][id(pay)]
+        add(pay.ts, ctx.tz, ACC_CASH, cash, 0, pay.entity_id, None, pay, pay, "cash")
+        relieved = 0
+        for position, (inv, _amount) in enumerate(pay.allocations):
+            relief = plan["relief"][(id(pay), position)]
+            if relief is not None:
+                relieved += relief
+                add(pay.ts, ctx.tz, ACC_AR, 0, relief, pay.entity_id, inv, pay, pay, f"ar:{position}")
+            unapplied = plan["unapplied"][(id(pay), position)]
+            if unapplied is not None:
+                relieved += unapplied
+                add(pay.ts, ctx.tz, ACC_UNAPPLIED, 0, unapplied, pay.entity_id, None, pay, pay,
+                    f"unapplied:{position}")
+        excess = plan["excess"][id(pay)]
+        if excess is not None:
+            relieved += excess
+            add(pay.ts, ctx.tz, ACC_UNAPPLIED, 0, excess, pay.entity_id, None, pay, pay, "excess")
+        diff = cash - relieved
+        if diff > 0:
+            add(pay.ts, ctx.tz, ACC_FX, 0, diff, pay.entity_id, None, pay, pay, "fx")
+        elif diff < 0:
+            add(pay.ts, ctx.tz, ACC_FX, -diff, 0, pay.entity_id, None, pay, pay, "fx")
     rows.sort(key=lambda r: (r.ts, r.seq))
     index = {(id(r.owner), r.role): r for r in rows}
     return rows, index
 
 
-def _build_filler(books: Books, rng: DetRng, counts: dict) -> None:
-    """Balanced operating journals so that the ledger has exactly n_ledger_rows rows."""
+def _build_filler(books: Books, rng: DetRng) -> None:
+    """Balanced operating journals so that the ledger has exactly n_ledger_rows rows.
+
+    Runs after the error injection, so it absorbs any row-count change caused by
+    a mutation (journals are independent of documents)."""
     cfg, ctx = books.config, books.ctx
     doc_rows = len(build_ledger(books)[0])
-    extra = sum(MUTATORS[name].extra_ledger_rows(c) for name, c in counts.items())
-    free = cfg.n_ledger_rows - doc_rows - extra
-    if free < 0 or free == 1 or free == 3:
+    free = cfg.n_ledger_rows - doc_rows
+    if free < 0 or free == 1:
         raise GeneratorError(f"cannot fill ledger: {free} filler rows required")
     if free == 0:
         return
-    remaining = free - 2          # two rows are reserved for the opening capital entry
+    opening = 3 if free == 3 else 2
+    remaining = free - opening
     cash_out = 0
     while remaining > 0:
         ts = ctx.start + timedelta(days=rng.randint(0, ctx.days - 1), seconds=_tod(rng))
@@ -690,67 +830,76 @@ def _build_filler(books: Books, rng: DetRng, counts: dict) -> None:
             label, cash_out, remaining = "operating_expense", cash_out + amount, remaining - 2
         books.journals.append(JournalRec(ts, ctx.base, legs, label, books.next_order()))
     capital = cash_out + rng.randint(1_000_000, 10_000_000)
-    books.journals.append(JournalRec(
-        ctx.start + timedelta(minutes=30), ctx.base,
-        [(ACC_CASH, capital, 0, None), (ACC_EQUITY, 0, capital, None)],
-        "opening_capital", books.next_order()))
+    if opening == 2:
+        legs = [(ACC_CASH, capital, 0, None), (ACC_EQUITY, 0, capital, None)]
+    else:
+        first = capital // 2
+        legs = [(ACC_CASH, capital, 0, None), (ACC_EQUITY, 0, first, "OWNER-1"),
+                (ACC_EQUITY, 0, capital - first, "OWNER-2")]
+    books.journals.append(JournalRec(ctx.start + timedelta(minutes=30), ctx.base, legs,
+                                     "opening_capital", books.next_order()))
 
 
-def _verify_clean(books: Books) -> dict:
-    """Prove the clean history is consistent before any error is injected."""
+def _check_books(books: Books, *, allow_mutations: bool) -> dict:
+    """Recompute the books independently and prove they are consistent.
+
+    Clean books: balanced, every invoice/payment translated by the published
+    rule, receivables per invoice tie out to the documents, nothing over-settled
+    and nothing left in unapplied cash."""
     ctx = books.ctx
     rows, _ = build_ledger(books)
-    balance: dict = {}
-    ar_ledger: dict = {}
-    for r in rows:
-        d, c = balance.get(r.currency, (0, 0))
-        balance[r.currency] = (d + r.debit, c + r.credit)
-        if r.account == ACC_AR:
-            ar_ledger[r.currency] = ar_ledger.get(r.currency, 0) + r.debit - r.credit
-    for cur, (d, c) in balance.items():
-        if d != c:
-            raise GeneratorError(f"clean ledger not balanced in {cur}")
-
-    open_by_inv: dict = {}
-    ar_documents: dict = {}
-    for inv in books.invoices:
-        if inv.booked_at is None:
-            continue
-        open_by_inv[id(inv)] = inv.total_minor if inv.kind == "invoice" else 0
-        ar_documents[inv.currency] = ar_documents.get(inv.currency, 0) + inv.total_minor
-        if inv.kind == "credit_note":
-            target = inv.lines[0].ref
-            open_by_inv[id(target)] += inv.total_minor
-    for pay in books.payments:
-        for inv, amount in pay.allocations:
-            open_by_inv[id(inv)] -= amount
-            ar_documents[pay.currency] = ar_documents.get(pay.currency, 0) - amount
-    if any(v < 0 for v in open_by_inv.values()):
-        raise GeneratorError("an invoice is over-settled")
-    for cur in set(ar_ledger) | set(ar_documents):
-        if ar_ledger.get(cur, 0) != ar_documents.get(cur, 0):
-            raise GeneratorError(f"AR sub-ledger does not tie out in {cur}")
-
+    debit = sum(r.debit for r in rows)
+    credit = sum(r.credit for r in rows)
+    if debit != credit:
+        raise GeneratorError("ledger not balanced")
+    plan = books.translator.plan()
     lookup = FxLookup(books.fx)
     digits = S.SUPPORTED_CURRENCIES
+
+    def independent(amount: int, currency: str, ts: datetime) -> int:
+        if currency == ctx.base:
+            return amount
+        rate = lookup.rate(currency, ctx.base, local_date(ts, ctx))
+        return S.convert_minor(amount, rate, digits[currency], digits[ctx.base])
+
+    ar_by_inv: dict = {}
+    for r in rows:
+        if r.account == ACC_AR and r.invoice is not None:
+            key = r.invoice.lines[0].ref if r.invoice.kind == "credit_note" else r.invoice
+            ar_by_inv[id(key)] = ar_by_inv.get(id(key), 0) + r.debit - r.credit
     revenue_base = 0
+    open_base = 0
     for inv in books.invoices:
         if inv.booked_at is None or inv.kind != "invoice":
             continue
-        if inv.currency == ctx.base:
-            revenue_base += inv.total_minor
-        else:
-            local = inv.booked_at.astimezone(ctx.tz).date().isoformat()
-            rate = lookup.rate(inv.currency, ctx.base, local)
-            revenue_base += S.convert_minor(inv.total_minor, rate, digits[inv.currency],
-                                            digits[ctx.base])
+        foreign, base = plan["outstanding"][id(inv)]
+        if not allow_mutations:
+            if plan["invoice"][id(inv)] != independent(inv.total_minor, inv.currency, inv.booked_at):
+                raise GeneratorError("invoice translated with a wrong rate")
+            if foreign < 0:
+                raise GeneratorError("an invoice is over-settled")
+            if foreign == 0 and base != 0:
+                raise GeneratorError("settled invoice leaves a residue in receivables")
+        if ar_by_inv.get(id(inv), 0) != base:
+            raise GeneratorError("receivables do not tie out to the documents")
+        revenue_base += plan["invoice"][id(inv)]
+        open_base += base
+    unapplied = sum(r.credit - r.debit for r in rows if r.account == ACC_UNAPPLIED)
+    if not allow_mutations:
+        for pay in books.payments:
+            if plan["cash"][id(pay)] != independent(pay.amount_minor, pay.currency, pay.ts):
+                raise GeneratorError("payment translated with a wrong rate")
+        legit = sum(v for v in plan["excess"].values() if v is not None)
+        if unapplied != legit:
+            raise GeneratorError("clean books hold unapplied cash beyond overpayments")
     return {
-        "balanced_by_currency": {c: {"debit_minor": d, "credit_minor": cr}
-                                 for c, (d, cr) in sorted(balance.items())},
-        "ar_open_minor_by_currency": dict(sorted(ar_documents.items())),
+        "balanced": {"currency": ctx.base, "debit_minor": debit, "credit_minor": credit},
+        "ar_open_base_minor": open_base,
+        "unapplied_cash_base_minor": unapplied,
         "booked_revenue_in_base_minor": revenue_base,
-        "ledger_rows_before_errors": len(rows),
-        "documents_before_errors": len(books.invoices) + len(books.payments),
+        "fx_gain_loss_base_minor": sum(r.credit - r.debit for r in rows if r.account == ACC_FX),
+        "ledger_rows": len(rows),
+        "documents": len(books.invoices) + len(books.payments),
     }
 
 
@@ -767,9 +916,6 @@ class Mutator(ABC):
         """Ordinary-looking stories that must exist so ``count`` mutations are possible."""
 
     def extra_documents(self, count: int) -> int:
-        return 0
-
-    def extra_ledger_rows(self, count: int) -> int:
         return 0
 
     @abstractmethod
@@ -790,9 +936,6 @@ class DuplicateInvoice(Mutator):
 
     def extra_documents(self, count: int) -> int:
         return count
-
-    def extra_ledger_rows(self, count: int) -> int:
-        return 2 * count
 
     def apply(self, books: Books, rng: DetRng, ordinal: int) -> Issue:
         ctx = books.ctx
@@ -884,7 +1027,47 @@ class PeriodCutoffError(Mutator):
         return Issue(self.name, [inv], inv.total_minor, inv.currency, evidence, mutation)
 
 
-MUTATORS: dict = {m.name: m for m in (DuplicateInvoice(), PeriodCutoffError())}
+class PartialPaymentAllocation(Mutator):
+    """A payment is received in full, but only part of it (or none) is applied to the
+    invoice it names; the rest sits in unapplied cash, so the invoice stays open."""
+
+    name = S.ISSUE_PARTIAL_PAYMENT
+    TAG = "reserved:partial_payment_allocation"
+
+    def reserved_specs(self, count: int, rng: DetRng) -> list:
+        return [StorySpec(rng.choice(("paid", "paid", "split")), (self.TAG,), max_docs=3)
+                for _ in range(count)]
+
+    def apply(self, books: Books, rng: DetRng, ordinal: int) -> Issue:
+        candidates = [pay for pay in books.payments
+                      if id(pay) not in books.used and pay.posted is None and pay.excess == 0
+                      and len(pay.allocations) == 1 and self.TAG in pay.allocations[0][0].tags
+                      and id(pay.allocations[0][0]) not in books.used]
+        if not candidates:
+            raise GeneratorError("no candidate payment for partial_payment_allocation")
+        pay = rng.choice(candidates)
+        inv, amount = pay.allocations[0]
+        books.used.update({id(pay), id(inv)})
+        variant = "missing" if amount < 4 or rng.chance(35) else "partial"
+        posted = 0 if variant == "missing" else amount * rng.randint(20, 80) // 100
+        pay.posted = [posted]
+        unapplied = amount - posted
+        evidence = [[pay, LedgerRef(pay, "unapplied:0")]]
+        if variant == "partial":
+            evidence.append([pay, LedgerRef(pay, "ar:0")])
+        mutation = {
+            "type": self.name, "variant": variant, "ordinal": ordinal,
+            "reason": "The payment document applies the full amount to the invoice, but the "
+                      "posting applies only part of it; the remainder was left in unapplied cash "
+                      "and the invoice still looks open in receivables.",
+            "ops": [{"op": "set_posted_allocation", "record": pay, "invoice": inv,
+                     "document_amount_minor": amount, "posted_amount_minor": posted}],
+        }
+        return Issue(self.name, [pay, inv], unapplied, pay.currency, evidence, mutation)
+
+
+MUTATORS: dict = {m.name: m for m in (DuplicateInvoice(), PeriodCutoffError(),
+                                       PartialPaymentAllocation())}
 
 
 # --------------------------------------------------------------------------- #
@@ -1020,13 +1203,19 @@ def _build_policy(ctx: PeriodCtx, cfg: S.EpisodeConfig) -> dict:
                     "(the UTC offset written in each timestamp must be honoured).",
         },
         "fx_rate_date_rule": {
-            "rule": "local_calendar_date_of_document_timestamp",
+            "rule": "local_calendar_date_of_posting_timestamp",
             "timezone": cfg.timezone,
             "fallback": "latest_earlier_available_date",
-            "description": "To convert a foreign-currency amount, use the fx.csv rate dated on the "
-                           "company-local calendar date of the document timestamp; if that date "
-                           "has no rate (e.g. weekend), use the latest earlier date. Rows in "
-                           "fx.csv are dated at local midnight.",
+            "description": "The ledger is kept in the base currency. A foreign-currency invoice is "
+                           "translated at the fx.csv rate of the company-local calendar date of its "
+                           "posting; if that date has no rate (e.g. weekend), use the latest earlier "
+                           "date. Rows in fx.csv are dated at local midnight; rate = base major units "
+                           "per one foreign major unit.",
+            "settlement": "Cash received is translated at the rate of the payment date. Credit notes "
+                          "and payment allocations relieve receivables at the historical rate of the "
+                          "invoice they refer to; the allocation that settles an invoice completely "
+                          "relieves exactly its remaining base balance. The difference between cash "
+                          "and relieved receivables is posted to account 4900.",
         },
         "rounding_rule": {
             "mode": S.ROUNDING_RULE,
@@ -1035,8 +1224,10 @@ def _build_policy(ctx: PeriodCtx, cfg: S.EpisodeConfig) -> dict:
         },
         "amount_tolerance_minor": cfg.amount_tolerance_minor,
         "ledger_conventions": {
-            "currency": "Ledger amounts are denominated in the row currency; debits equal "
-                        "credits within every currency.",
+            "currency": "All ledger rows are in the base currency; debits equal credits. "
+                        "Documents keep their own currency.",
+            "payments": "A payment allocation is posted as a credit to receivables (1100) with the "
+                        "invoice_id; cash not applied to an invoice is posted to 2100.",
             "documents": "invoices.jsonl holds invoices and credit notes (CN-*, negative "
                          "total_minor). An invoice dated outside the period without ledger "
                          "postings is correctly excluded from this period.",
@@ -1164,11 +1355,13 @@ def generate_episode(seed: int, config: Any = None, *, id_scheme: Optional[IdSch
     _build_parties(books, root.fork("parties"))
     _build_clean_stories(books, root.fork("stories"), counts)
     _build_fx(books, root.fork("fx"))
-    _build_filler(books, root.fork("filler"), counts)
-    clean_checks = _verify_clean(books)
+    books.translator = Translator(books)
+    clean_checks = _check_books(books, allow_mutations=False)   # before any error exists
 
     mutation_rng = root.fork("mutations")
     issues = [MUTATORS[name].apply(books, mutation_rng.fork(str(i)), i)
               for i, name in enumerate(plan)]
+    _build_filler(books, root.fork("filler"))
+    clean_checks["after_errors"] = _check_books(books, allow_mutations=True)
     return _finalize(seed, cfg, episode_id, books, issues, plan, clean_checks,
                      id_scheme or SequentialIdScheme())

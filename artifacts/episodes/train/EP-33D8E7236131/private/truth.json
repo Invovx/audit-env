@@ -1,0 +1,46 @@
+[
+  {
+    "issue_id": "ISS-0001",
+    "type": "partial_payment_allocation",
+    "affected_ids": [
+      "DOC-00024",
+      "DOC-00033"
+    ],
+    "expected_amount_minor": 69810000,
+    "currency": "KZT",
+    "valid_evidence_sets": [
+      [
+        "DOC-00033",
+        "L000287"
+      ],
+      [
+        "DOC-00033",
+        "L000288"
+      ]
+    ]
+  },
+  {
+    "issue_id": "ISS-0002",
+    "type": "duplicate_invoice",
+    "affected_ids": [
+      "DOC-00041",
+      "DOC-00042"
+    ],
+    "expected_amount_minor": 391500000,
+    "currency": "KZT",
+    "valid_evidence_sets": [
+      [
+        "DOC-00041",
+        "DOC-00042"
+      ],
+      [
+        "L000332",
+        "L000340"
+      ],
+      [
+        "L000333",
+        "L000341"
+      ]
+    ]
+  }
+]

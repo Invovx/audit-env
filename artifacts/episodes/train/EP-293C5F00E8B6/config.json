@@ -1,0 +1,10 @@
+{
+  "config_version": "1.0",
+  "seed": 1007,
+  "config": {
+    "n_ledger_rows": 300,
+    "n_documents": 30,
+    "n_errors": 3,
+    "timezone": "-03:30"
+  }
+}

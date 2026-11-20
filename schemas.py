@@ -26,7 +26,7 @@ from typing import Any, Iterable, Mapping, Optional, Sequence
 # Versions, limits, vocabularies
 # --------------------------------------------------------------------------- #
 SCHEMA_VERSION = "1.0"
-GENERATOR_VERSION = "1.0.0"
+GENERATOR_VERSION = "1.1.0"
 
 MAX_STEPS = 100
 MAX_LIST_LIMIT = 50
@@ -39,7 +39,9 @@ TABLES = ("ledger", "invoices", "payments", "fx")
 
 ISSUE_DUPLICATE_INVOICE = "duplicate_invoice"
 ISSUE_PERIOD_CUTOFF = "period_cutoff_error"
+ISSUE_PARTIAL_PAYMENT = "partial_payment_allocation"
 STAGE1_ISSUE_TYPES = (ISSUE_DUPLICATE_INVOICE, ISSUE_PERIOD_CUTOFF)
+ALL_ISSUE_TYPES = (ISSUE_DUPLICATE_INVOICE, ISSUE_PERIOD_CUTOFF, ISSUE_PARTIAL_PAYMENT)
 
 # currency -> number of minor-unit digits (explicitly published in manifest.json)
 SUPPORTED_CURRENCIES = {"KZT": 2, "USD": 2, "EUR": 2}
@@ -48,10 +50,12 @@ ROUNDING_RULE = "ROUND_HALF_UP"
 CHART_OF_ACCOUNTS = {
     "1000": "Cash",
     "1100": "Accounts Receivable",
+    "2100": "Unapplied Cash Receipts",
     "2300": "Payroll Taxes Payable",
     "3000": "Owner Equity",
     "4000": "Sales Revenue",
     "4100": "Sales Returns",
+    "4900": "Foreign Exchange Gain/Loss",
     "5100": "Rent Expense",
     "5200": "Payroll Expense",
     "5300": "Utilities Expense",
@@ -224,7 +228,7 @@ class EpisodeConfig:
     n_ledger_rows: int = 600
     n_documents: int = 60
     n_errors: int = 3
-    error_types: tuple = STAGE1_ISSUE_TYPES
+    error_types: tuple = ALL_ISSUE_TYPES
     base_currency: str = "KZT"
     foreign_currencies: tuple = ("USD", "EUR")
     timezone: str = "+05:00"

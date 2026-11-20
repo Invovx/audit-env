@@ -1,0 +1,222 @@
+[
+  {
+    "issue_id": "ISS-0001",
+    "type": "partial_payment_allocation",
+    "affected_ids": [
+      "DOC-00057",
+      "DOC-00077"
+    ],
+    "expected_amount_minor": 229500000,
+    "currency": "KZT",
+    "valid_evidence_sets": [
+      [
+        "DOC-00077",
+        "L000797"
+      ],
+      [
+        "DOC-00077",
+        "L000798"
+      ]
+    ]
+  },
+  {
+    "issue_id": "ISS-0002",
+    "type": "duplicate_invoice",
+    "affected_ids": [
+      "DOC-00165",
+      "DOC-00166"
+    ],
+    "expected_amount_minor": 1495000,
+    "currency": "USD",
+    "valid_evidence_sets": [
+      [
+        "DOC-00165",
+        "DOC-00166"
+      ]
+    ]
+  },
+  {
+    "issue_id": "ISS-0003",
+    "type": "period_cutoff_error",
+    "affected_ids": [
+      "DOC-00200"
+    ],
+    "expected_amount_minor": 710000,
+    "currency": "EUR",
+    "valid_evidence_sets": [
+      [
+        "DOC-00200",
+        "L001992"
+      ],
+      [
+        "DOC-00200",
+        "L001993"
+      ]
+    ]
+  },
+  {
+    "issue_id": "ISS-0004",
+    "type": "period_cutoff_error",
+    "affected_ids": [
+      "DOC-00199"
+    ],
+    "expected_amount_minor": 677000000,
+    "currency": "KZT",
+    "valid_evidence_sets": [
+      [
+        "DOC-00199",
+        "L001929"
+      ],
+      [
+        "DOC-00199",
+        "L001930"
+      ]
+    ]
+  },
+  {
+    "issue_id": "ISS-0005",
+    "type": "duplicate_invoice",
+    "affected_ids": [
+      "DOC-00072",
+      "DOC-00073"
+    ],
+    "expected_amount_minor": 240000000,
+    "currency": "KZT",
+    "valid_evidence_sets": [
+      [
+        "DOC-00072",
+        "DOC-00073"
+      ],
+      [
+        "L000767",
+        "L000784"
+      ],
+      [
+        "L000768",
+        "L000785"
+      ]
+    ]
+  },
+  {
+    "issue_id": "ISS-0006",
+    "type": "duplicate_invoice",
+    "affected_ids": [
+      "DOC-00125",
+      "DOC-00126"
+    ],
+    "expected_amount_minor": 1015000000,
+    "currency": "KZT",
+    "valid_evidence_sets": [
+      [
+        "DOC-00125",
+        "DOC-00126"
+      ]
+    ]
+  },
+  {
+    "issue_id": "ISS-0007",
+    "type": "duplicate_invoice",
+    "affected_ids": [
+      "DOC-00070",
+      "DOC-00071"
+    ],
+    "expected_amount_minor": 150000000,
+    "currency": "KZT",
+    "valid_evidence_sets": [
+      [
+        "DOC-00070",
+        "DOC-00071"
+      ]
+    ]
+  },
+  {
+    "issue_id": "ISS-0008",
+    "type": "partial_payment_allocation",
+    "affected_ids": [
+      "DOC-00062",
+      "DOC-00163"
+    ],
+    "expected_amount_minor": 36000000,
+    "currency": "KZT",
+    "valid_evidence_sets": [
+      [
+        "DOC-00163",
+        "L001556"
+      ]
+    ]
+  },
+  {
+    "issue_id": "ISS-0009",
+    "type": "period_cutoff_error",
+    "affected_ids": [
+      "DOC-00003"
+    ],
+    "expected_amount_minor": 192000000,
+    "currency": "KZT",
+    "valid_evidence_sets": [
+      [
+        "DOC-00003",
+        "L000094"
+      ],
+      [
+        "DOC-00003",
+        "L000095"
+      ]
+    ]
+  },
+  {
+    "issue_id": "ISS-0010",
+    "type": "partial_payment_allocation",
+    "affected_ids": [
+      "DOC-00017",
+      "DOC-00080"
+    ],
+    "expected_amount_minor": 324000000,
+    "currency": "KZT",
+    "valid_evidence_sets": [
+      [
+        "DOC-00080",
+        "L000820"
+      ]
+    ]
+  },
+  {
+    "issue_id": "ISS-0011",
+    "type": "partial_payment_allocation",
+    "affected_ids": [
+      "DOC-00128",
+      "DOC-00197"
+    ],
+    "expected_amount_minor": 138000000,
+    "currency": "KZT",
+    "valid_evidence_sets": [
+      [
+        "DOC-00197",
+        "L001952"
+      ],
+      [
+        "DOC-00197",
+        "L001953"
+      ]
+    ]
+  },
+  {
+    "issue_id": "ISS-0012",
+    "type": "period_cutoff_error",
+    "affected_ids": [
+      "DOC-00001"
+    ],
+    "expected_amount_minor": 395000,
+    "currency": "EUR",
+    "valid_evidence_sets": [
+      [
+        "DOC-00001",
+        "L000111"
+      ],
+      [
+        "DOC-00001",
+        "L000112"
+      ]
+    ]
+  }
+]

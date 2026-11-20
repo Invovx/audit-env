@@ -1,0 +1,104 @@
+[
+  {
+    "issue_id": "ISS-0001",
+    "type": "period_cutoff_error",
+    "affected_ids": [
+      "DOC-00002"
+    ],
+    "expected_amount_minor": 115500,
+    "currency": "USD",
+    "valid_evidence_sets": [
+      [
+        "DOC-00002",
+        "L000011"
+      ],
+      [
+        "DOC-00002",
+        "L000012"
+      ]
+    ]
+  },
+  {
+    "issue_id": "ISS-0002",
+    "type": "period_cutoff_error",
+    "affected_ids": [
+      "DOC-00079"
+    ],
+    "expected_amount_minor": 480000,
+    "currency": "USD",
+    "valid_evidence_sets": [
+      [
+        "DOC-00079",
+        "L000697"
+      ],
+      [
+        "DOC-00079",
+        "L000698"
+      ]
+    ]
+  },
+  {
+    "issue_id": "ISS-0003",
+    "type": "partial_payment_allocation",
+    "affected_ids": [
+      "DOC-00012",
+      "DOC-00016"
+    ],
+    "expected_amount_minor": 3630,
+    "currency": "USD",
+    "valid_evidence_sets": [
+      [
+        "DOC-00016",
+        "L000217"
+      ],
+      [
+        "DOC-00016",
+        "L000218"
+      ]
+    ]
+  },
+  {
+    "issue_id": "ISS-0004",
+    "type": "duplicate_invoice",
+    "affected_ids": [
+      "DOC-00013",
+      "DOC-00014"
+    ],
+    "expected_amount_minor": 814000,
+    "currency": "USD",
+    "valid_evidence_sets": [
+      [
+        "DOC-00013",
+        "DOC-00014"
+      ],
+      [
+        "L000197",
+        "L000204"
+      ],
+      [
+        "L000198",
+        "L000205"
+      ]
+    ]
+  },
+  {
+    "issue_id": "ISS-0005",
+    "type": "partial_payment_allocation",
+    "affected_ids": [
+      "DOC-00048",
+      "DOC-00075"
+    ],
+    "expected_amount_minor": 264000,
+    "currency": "USD",
+    "valid_evidence_sets": [
+      [
+        "DOC-00075",
+        "L000640"
+      ],
+      [
+        "DOC-00075",
+        "L000641"
+      ]
+    ]
+  }
+]

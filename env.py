@@ -35,6 +35,8 @@ TASK_DESCRIPTION = (
     "Each finding: {type, affected_ids, claimed_amount_minor, currency, evidence_ids, "
     "explanation}; at most 30 findings, 10 evidence_ids each, explanation up to 1000 "
     "characters. Money is an integer in minor units of the stated currency.\n"
+    "The ledger is kept in the base currency; documents keep their own currency (see policy for "
+    "the FX translation and settlement rules).\n"
     "Error types:\n"
     "- duplicate_invoice: the same invoice entered twice (two invoice documents plus duplicated "
     "postings). affected_ids = doc_ids of both invoice documents; claimed_amount_minor = "
@@ -44,7 +46,13 @@ TASK_DESCRIPTION = (
     "(compare absolute instants, see policy) whose postings are booked inside the period. "
     "affected_ids = [doc_id of that invoice]; claimed_amount_minor = its total_minor; "
     "currency = its currency; evidence_ids = the invoice doc_id plus a ledger row_id of its "
-    "postings."
+    "postings.\n"
+    "- partial_payment_allocation: a payment document applies its amount to an invoice, but the "
+    "ledger applies only part of it (or none) to receivables and leaves the rest in unapplied cash "
+    "(2100). affected_ids = [payment doc_id, invoice doc_id]; claimed_amount_minor = the "
+    "unapplied amount in the payment currency; currency = payment currency; evidence_ids = the "
+    "payment doc_id plus the ledger row_id that shows the unapplied or short-applied amount. "
+    "A legitimate overpayment (payment larger than the invoice) also leaves cash in 2100."
 )
 
 _MAX_MESSAGE = 200

@@ -212,7 +212,7 @@ def test_files_on_disk_isolation_and_null_mapping(tmp_path):
     truth = json.loads((private_dir / "truth.json").read_text(encoding="utf-8"))
     assert truth == ep.truth
     prov = json.loads((private_dir / "provenance.json").read_text(encoding="utf-8"))
-    assert prov["mutations"] and prov["clean_books_checks"]["balanced_by_currency"]
+    assert prov["mutations"] and prov["clean_books_checks"]["balanced"]
 
 
 def _truth_is_semantically_true(ep) -> None:
@@ -223,7 +223,7 @@ def _truth_is_semantically_true(ep) -> None:
     policy_tol = ep.policy["amount_tolerance_minor"]
     assert isinstance(policy_tol, int)
 
-    cutoff_ids, dup_groups = set(), []
+    cutoff_ids, dup_groups, partial_ids = set(), [], set()
     for t in ep.truth:
         assert t["valid_evidence_sets"] and all(set(s) <= known for s in t["valid_evidence_sets"])
         assert set(t["affected_ids"]) <= known
@@ -238,6 +238,23 @@ def _truth_is_semantically_true(ep) -> None:
                 if ev[0] in ledger:
                     rows = [ledger[i] for i in ev]
                     assert len({r["invoice_id"] for r in rows}) == 1
+        elif t["type"] == "partial_payment_allocation":
+            pays = {d["doc_id"]: d for d in ep.payments}
+            pay = next(pays[i] for i in t["affected_ids"] if i in pays)
+            invoice = next(inv[i] for i in t["affected_ids"] if i in inv)
+            assert pay["invoice_refs"] == [invoice["invoice_id"]]
+            assert t["currency"] == pay["currency"] and 0 < t["expected_amount_minor"] <= pay["amount_minor"]
+            rows = [r for r in ep.ledger if r["payment_id"] == pay["payment_id"]]
+            unapplied = sum(r["credit_minor"] for r in rows if r["account"] == "2100")
+            applied = sum(r["credit_minor"] for r in rows if r["account"] == "1100")
+            cash = sum(r["debit_minor"] for r in rows if r["account"] == "1000")
+            assert unapplied > 0 and applied < cash
+            if pay["currency"] == ep.manifest["base_currency"]:
+                assert unapplied == t["expected_amount_minor"]
+            partial_ids.add(pay["payment_id"])
+            for ev in t["valid_evidence_sets"]:
+                assert pay["doc_id"] in ev and any(i in ledger and ledger[i]["payment_id"] == pay["payment_id"]
+                                                   for i in ev)
         else:
             doc = inv[t["affected_ids"][0]]
             assert not (start <= parse_ts(doc["issued_at"]) <= end)
@@ -254,6 +271,12 @@ def _truth_is_semantically_true(ep) -> None:
                       if d["invoice_id"] in booked
                       and not (start <= parse_ts(d["issued_at"]) <= end)}
     assert outside_booked == cutoff_ids
+    # unapplied cash is an error unless the payment is larger than what it pays (overpayment)
+    totals = {d["invoice_id"]: d["total_minor"] for d in ep.invoices}
+    with_unapplied = {r["payment_id"] for r in ep.ledger if r["account"] == "2100"}
+    suspicious = {p["payment_id"] for p in ep.payments if p["payment_id"] in with_unapplied
+                  and p["amount_minor"] <= sum(totals[i] for i in p["invoice_refs"])}
+    assert suspicious == partial_ids
     groups: dict = {}
     for d in ep.invoices:
         groups.setdefault((d["entity_id"], d["issued_at"], d["currency"], d["total_minor"]), set()).add(d["doc_id"])
@@ -266,7 +289,7 @@ def test_truth_is_backed_by_causal_provenance_and_data(seed):
     _truth_is_semantically_true(ep)
     prov = ep.provenance
     assert len(prov["mutations"]) == len(ep.truth) == 6
-    assert {m["type"] for m in prov["mutations"]} == {"duplicate_invoice", "period_cutoff_error"}
+    assert {m["type"] for m in prov["mutations"]} == set(S.ALL_ISSUE_TYPES)
     for m, t in zip(prov["mutations"], ep.truth):
         assert m["issue_id"] == t["issue_id"] and m["ops"] and m["reason"]
     assert prov["seed"] == seed
@@ -300,8 +323,10 @@ def test_clean_books_have_no_truth_but_contain_legitimate_distractors():
             kinds.add("out_of_period_unbooked")
         if any(d["issued_at"].endswith("+00:00") and ep.manifest["timezone"] != "+00:00" for d in ep.invoices):
             kinds.add("utc_rendering")
+        if any(r["account"] == "2100" for r in ep.ledger):
+            kinds.add("overpayment")
     assert kinds == {"combined_payment", "split_payment", "return", "repeated_amount",
-                     "boundary", "out_of_period_unbooked", "utc_rendering"}
+                     "boundary", "out_of_period_unbooked", "utc_rendering", "overpayment"}
 
 
 def test_invalid_configs_are_rejected():
