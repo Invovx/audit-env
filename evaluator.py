@@ -64,7 +64,8 @@ def compute_reward(f1: float, inspection_steps: int) -> float:
     return max(-1.0, min(1.0, 2.0 * f1 - 1.0 - S.STEP_PENALTY * inspection_steps))
 
 
-def _matches(finding: S.Finding, ref: _Reference, tolerance: int) -> bool:
+def _matches(finding: S.Finding, ref: _Reference, tolerance: int,
+             public_ids: Optional[frozenset] = None) -> bool:
     if finding.type != ref.type:
         return False
     if finding.affected_ids != ref.affected:
@@ -74,12 +75,20 @@ def _matches(finding: S.Finding, ref: _Reference, tolerance: int) -> bool:
     if abs(finding.claimed_amount_minor - ref.amount) > tolerance:
         return False
     evidence = set(finding.evidence_ids)
+    if public_ids is not None and not evidence <= public_ids:
+        # a nonexistent / unavailable evidence id makes the finding unmatched (M04)
+        return False
     return any(valid <= evidence for valid in ref.evidence_sets)
 
 
-def _max_matching(findings: Sequence[S.Finding], refs: Sequence[_Reference], tolerance: int) -> int:
-    """Size of a maximum 1-to-1 matching (augmenting paths, deterministic order)."""
-    adjacency = [[j for j, ref in enumerate(refs) if _matches(f, ref, tolerance)]
+def _max_matching(findings: Sequence[S.Finding], refs: Sequence[_Reference], tolerance: int,
+                  public_ids: Optional[frozenset] = None) -> int:
+    """Size of a maximum 1-to-1 matching (augmenting paths, deterministic order).
+
+    TP/FP/FN depend only on the size of the matching, which is unique, so the
+    order of findings can change which identical finding is matched but never
+    the counts or the reward."""
+    adjacency = [[j for j, ref in enumerate(refs) if _matches(f, ref, tolerance, public_ids)]
                  for f in findings]
     owner = [-1] * len(refs)
 
@@ -100,7 +109,10 @@ class Evaluator:
     """Grades a submission against the reference errors of one episode."""
 
     def __init__(self, episode_id: str, truth: Sequence[Mapping[str, Any]],
-                 amount_tolerance_minor: int) -> None:
+                 amount_tolerance_minor: int, public_ids: Optional[Any] = None) -> None:
+        """``public_ids``: every id an agent can reach with the tools (ledger
+        row_id, document doc_id, fx id).  When given, a finding that cites any
+        other evidence id is not matched."""
         if not S.is_int(amount_tolerance_minor) or amount_tolerance_minor < 0:
             raise S.SchemaError("amount_tolerance_minor: must be a non-negative int")
         if not isinstance(truth, (list, tuple)):
@@ -119,6 +131,7 @@ class Evaluator:
         self._episode_id = episode_id
         self._refs = tuple(refs)
         self._tolerance = amount_tolerance_minor
+        self._public_ids = frozenset(public_ids) if public_ids is not None else None
         self._final: Optional[EvalResult] = None
         self._log: list = []
 
@@ -142,7 +155,7 @@ class Evaluator:
             return EvalResult(-1.0, 0.0, 0.0, 0.0, 0, 0, len(self._refs), inspection_steps,
                               False, truncated, error=str(exc))
 
-        tp = _max_matching(findings, self._refs, self._tolerance)
+        tp = _max_matching(findings, self._refs, self._tolerance, self._public_ids)
         fp = len(findings) - tp
         fn = len(self._refs) - tp
         precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0

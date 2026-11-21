@@ -241,7 +241,7 @@ class EpisodeConfig:
     timezone: str = "+05:00"
     period_start: str = "2026-01-01"
     period_days: int = 90
-    amount_tolerance_minor: int = 100
+    amount_tolerance_minor: int = 0   # exact by default (published matcher convention)
     include_distractors: bool = True
     interactions: tuple = ()
     # Presentation-only fields: they change ids and row order, never the history.

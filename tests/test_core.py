@@ -713,7 +713,8 @@ def test_invalid_submit_envelopes_give_minus_one():
 def test_limits_are_inclusive_and_valid_at_the_boundary():
     ep = generate_episode(1, DIRTY)
     f = finding_from_truth(ep.truth[0])
-    boundary = [{**f, "evidence_ids": f["evidence_ids"] + [f"X{i}" for i in range(10 - len(f["evidence_ids"]))],
+    spare = [r["row_id"] for r in ep.ledger if r["row_id"] not in f["evidence_ids"]]
+    boundary = [{**f, "evidence_ids": f["evidence_ids"] + spare[:10 - len(f["evidence_ids"])],
                  "explanation": "y" * 1000}] + [false_accusation(ep)] * 29
     assert len(boundary) == 30 and len(boundary[0]["evidence_ids"]) == 10
     env = AuditEnv()

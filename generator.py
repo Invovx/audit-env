@@ -1167,8 +1167,8 @@ def _shifted(local: str, days: int) -> str:
 def invoice_wrong_dates(books: Books, rng: DetRng, inv: InvoiceRec) -> list:
     right = local_date(inv.booked_at, books.ctx)
     options = [("due_date", local_date(inv.due_at, books.ctx))]
-    options += [("previous_days", _shifted(right, -d)) for d in (1, 2, 3, 4, 5, 6)]
-    options += [("next_days", _shifted(right, d)) for d in (1, 2, 3, 4, 5, 6)]
+    options += [("previous_days", _shifted(right, -d)) for d in range(1, 11)]
+    options += [("next_days", _shifted(right, d)) for d in range(1, 11)]
     head, tail = options[:1], options[1:]
     rng.shuffle(tail)
     return head + tail if rng.chance(40) else tail + head
@@ -1181,8 +1181,9 @@ class FxRateError(Mutator):
     TAG = "reserved:fx_rate_error"
 
     def reserved_specs(self, count: int, rng: DetRng) -> list:
+        # one spare story: a tiny invoice may not move enough under any wrong date
         return [StorySpec(rng.choice(("open", "paid")), (self.TAG,), max_docs=2, foreign=True)
-                for _ in range(count)]
+                for _ in range(count + 1)]
 
     def apply(self, books: Books, rng: DetRng, ordinal: int) -> Issue:
         candidates = [inv for inv in books.invoices
@@ -1190,10 +1191,17 @@ class FxRateError(Mutator):
                       and inv.booked_at is not None and inv.currency != books.ctx.base]
         if not candidates:
             raise GeneratorError("no candidate invoice for fx_rate_error")
-        inv = rng.choice(candidates)
-        books.used.add(id(inv))
-        return misdate_rate(books, rng, inv, "booking", inv.booked_at, inv.total_minor, inv.currency,
-                            invoice_wrong_dates(books, rng, inv), ordinal, [inv], ("ar", "revenue"))
+        rng.shuffle(candidates)
+        for inv in candidates:                      # small invoices may not move enough
+            try:
+                issue = misdate_rate(books, rng, inv, "booking", inv.booked_at, inv.total_minor,
+                                     inv.currency, invoice_wrong_dates(books, rng, inv), ordinal,
+                                     [inv], ("ar", "revenue"))
+            except GeneratorError:
+                continue
+            books.used.add(id(inv))
+            return issue
+        raise GeneratorError("no candidate invoice for fx_rate_error moves enough")
 
 
 class Scenario(Mutator):
@@ -1233,7 +1241,7 @@ class PartialFxBoundary(Scenario):
              "ops": [{"op": "set_posted_allocation", "record": pay, "invoice": inv,
                       "document_amount_minor": amount, "posted_amount_minor": posted}]})
         right = local_date(pay.ts, books.ctx)
-        wrong = [("next_period_day", _shifted(right, d)) for d in (1, 2, 3, 4, 5, 6)]
+        wrong = [("next_period_day", _shifted(right, d)) for d in range(1, 11)]
         fx = misdate_rate(books, rng, pay, "cash", pay.ts, pay.amount_minor, pay.currency, wrong,
                           ordinal, [pay], ("cash",))
         fx.mutation["scenario"] = "partial_fx_boundary"
@@ -1263,7 +1271,7 @@ class CutoffFx(Scenario):
         right = local_date(inv.booked_at, books.ctx)
         doc_day = local_date(inv.issued_at, books.ctx)
         wrong = [("document_date", doc_day)] + [("document_date_next", _shifted(doc_day, d))
-                                                for d in (1, 2, 3, 4, 5)]
+                                                for d in range(1, 11)]
         fx = misdate_rate(books, rng, inv, "booking", inv.booked_at, inv.total_minor, inv.currency,
                           wrong, ordinal, [inv], ("ar", "revenue"))
         fx.mutation["scenario"] = "cutoff_fx"

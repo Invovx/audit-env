@@ -13,6 +13,7 @@ from __future__ import annotations
 import copy
 from typing import Any, Optional
 
+import episode_io
 import safe_calc
 import schemas as S
 from evaluator import Evaluator, EvalResult
@@ -112,11 +113,26 @@ class AuditEnv:
     # ------------------------------------------------------------------ #
     def reset(self, seed: int, config: Any = None, *, id_scheme: Any = None) -> tuple:
         episode = generate_episode(seed, config, id_scheme=id_scheme)   # validates seed/config, may raise
-        fx_rows = [{"fx_id": S.fx_record_id(r), **r} for r in episode.fx]
+        return self._install(
+            {"manifest": episode.manifest, "policy": episode.policy, "ledger": episode.ledger,
+             "invoices": episode.invoices, "payments": episode.payments, "fx": episode.fx},
+            episode.truth)
+
+    def reset_from_dir(self, episode_dir: Any) -> tuple:
+        """Load an existing episode from disk (closed check / paired copies).
+
+        Nothing is regenerated and no id is changed.  Calling it again restarts
+        the same episode from scratch."""
+        data = episode_io.load_public(episode_dir)
+        truth = episode_io.load_truth(episode_dir)
+        return self._install(data, truth)
+
+    def _install(self, data: dict, truth: list) -> tuple:
+        fx_rows = [{"fx_id": S.fx_record_id(r), **r} for r in data["fx"]]
         tables = {
-            "ledger": copy.deepcopy(episode.ledger),
-            "invoices": copy.deepcopy(episode.invoices),
-            "payments": copy.deepcopy(episode.payments),
+            "ledger": copy.deepcopy(list(data["ledger"])),
+            "invoices": copy.deepcopy(list(data["invoices"])),
+            "payments": copy.deepcopy(list(data["payments"])),
             "fx": fx_rows,
         }
         key = {"ledger": "row_id", "invoices": "doc_id", "payments": "doc_id", "fx": "fx_id"}
@@ -125,10 +141,10 @@ class AuditEnv:
         self._index = {t: {row[key[t]]: i for i, row in enumerate(rows)} for t, rows in tables.items()}
         self._documents = {d["doc_id"]: ("invoice", d) for d in tables["invoices"]}
         self._documents.update({d["doc_id"]: ("payment", d) for d in tables["payments"]})
-        self._manifest = copy.deepcopy(episode.manifest)
-        self._policy_summary = S.policy_summary(episode.policy)
-        self._evaluator = Evaluator(episode.episode_id, episode.truth,
-                                    episode.policy["amount_tolerance_minor"])
+        self._manifest = copy.deepcopy(data["manifest"])
+        self._policy_summary = S.policy_summary(data["policy"])
+        self._evaluator = Evaluator(self._manifest["episode_id"], truth,
+                                    episode_io.tolerance(data), episode_io.public_ids(data))
         self._steps_used = 0
         self._done = self._terminated = self._truncated = False
         observation = {
@@ -239,7 +255,7 @@ class AuditEnv:
         }
         handler = handlers.get(tool)
         if handler is None:
-            raise _ToolError("unknown_tool", f"Unknown tool '{_clip(tool)}'. Available tools: "
+            raise _ToolError("unknown_tool", "Unknown action. Available: "
                              "list_records, get_record, get_document, calculator, submit.")
         return handler(action)
 
@@ -250,7 +266,7 @@ class AuditEnv:
             raise _ToolError("invalid_argument", f"Missing argument(s): {', '.join(missing)}.")
         extra = [str(k) for k in action if k != "tool" and k not in required and k not in optional]
         if extra:
-            raise _ToolError("invalid_argument", f"Unexpected argument(s): {_clip(', '.join(extra))}.")
+            raise _ToolError("invalid_argument", "Unexpected argument(s) for this action.")
 
     @staticmethod
     def _table_arg(action: dict) -> str:
@@ -292,7 +308,7 @@ class AuditEnv:
             raise _ToolError("invalid_argument", "id must be a string.")
         position = self._index[table].get(record_id)
         if position is None:
-            raise _ToolError("unknown_id", f"No record '{_clip(record_id)}' in table '{table}'.")
+            raise _ToolError("unknown_id", f"No record with this id in table '{table}'.")
         return {"kind": "record", "table": table,
                 "record": copy.deepcopy(self._tables[table][position]),
                 "steps_remaining": self.steps_remaining}
@@ -304,7 +320,7 @@ class AuditEnv:
             raise _ToolError("invalid_argument", "doc_id must be a string.")
         found = self._documents.get(doc_id)
         if found is None:
-            raise _ToolError("unknown_id", f"No document '{_clip(doc_id)}'.")
+            raise _ToolError("unknown_id", "No document with this doc_id.")
         doc_type, document = found
         return {"kind": "document", "doc_type": doc_type, "document": copy.deepcopy(document),
                 "steps_remaining": self.steps_remaining}

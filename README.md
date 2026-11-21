@@ -29,6 +29,56 @@ python check.py
 
 Сеть, GPU и платные API не нужны. Время полной проверки — около 5 секунд на 2 CPU.
 
+## Подключение жюри: `judge_adapter.py`
+
+Точки входа по опубликованному протоколу проверок (20.11.2026). Рабочая директория в контейнере — `/app`
+(она же в `PYTHONPATH`), Python 3.11, сеть не нужна:
+
+```bash
+docker build -t audit-env .
+docker run --rm --network none audit-env                       # полная проверка (check.py)
+docker run --rm --network none audit-env python -c "import judge_adapter"   # точка входа жюри
+```
+
+```python
+import judge_adapter as J
+J.generate_episode(seed, team_config, output_dir)        # пишет output_dir/public/* и output_dir/private/*
+env = J.make_env()
+obs, info = env.reset(seed, {"mode": "closed", "episode_dir": output_dir, "team_config": {}})
+obs, reward, terminated, truncated, info = env.step({"name": "list_records",
+                                                     "args": {"table": "ledger", "cursor": None, "limit": 50}})
+J.score_episode(output_dir, findings_json, inspection_steps)
+```
+
+| Что | Как устроено |
+|---|---|
+| Каталог эпизода | `public/` — manifest.json, policy.json, ledger.csv, invoices.jsonl, payments.jsonl, fx.csv; `private/` — truth.json, provenance.json. Плоский вариант (все файлы в одном каталоге) тоже читается |
+| `reset` с `episode_dir` | загружает переданный эпизод как есть: ничего не генерирует, ID не меняет; повторный reset начинает его заново. Без `episode_dir` — генератор команды с `seed` и `team_config` |
+| Режимы | `closed`: reward политике всегда 0, в info нет диагностики; `train`: терминальная награда и счётчики TP/FP/FN в info |
+| Первое наблюдение | `{"task", "manifest", "policy" (весь policy.json), "remaining_steps": 100}` |
+| Следующие | `{"result", "error", "remaining_steps"}`; ошибка — `{"code", "message"}` без путей, seed и введённых агентом строк |
+| Результаты действий | list_records → `{"records", "next_cursor"}`; get_record / get_document → объект; calculator → десятичная строка (`"0.3"`); submit → `{"accepted": true}` или ошибка структуры |
+| Таблицы | `ledger` (ID = row_id), `invoices` и `payments` (ID = doc_id), `fx` (ID = `FX-<YYYY-MM-DD>-<SRC>-<TGT>`, выводится из даты и пары валют) |
+| Лимиты | 100 действий вместе с submit; submit не входит в inspection_steps; 100 исследований без submit → truncated, пустой ответ; 60 с от reset (с временем политики) → truncated |
+| `score_episode` | валидный submit → `{tp, fp, fn, precision, recall, f1, return}`; невалидная структура → `return = -1`, остальные шесть полей `null` |
+
+**Matcher** (`evaluator.py`): affected_ids и evidence_ids — множества точных строк; TP требует тип, точное
+множество affected_ids, валюту, сумму в пределах τ и полный допустимый набор доказательств, а **все**
+evidence_ids должны существовать среди row_id, doc_id и fx ID эпизода (иначе FP, пример M04).
+Допуск τ = `policy.amount_tolerance_minor`, по умолчанию **0** (точное сравнение). Паросочетание —
+максимальное (augmenting paths), повторный вывод — отдельный FP.
+
+**Четыре типа ошибок** и канонические affected_ids:
+
+| Тип | affected_ids | Сумма и валюта |
+|---|---|---|
+| `duplicate_invoice` | оба doc_id счетов-дублей | сумма счёта, валюта счёта |
+| `partial_payment_allocation` | doc_id платежа + doc_id счёта | неприменённая сумма, валюта платежа |
+| `fx_rate_error` | doc_id счёта или платежа с неверным курсом | \|проведено − верно\| в базовой валюте |
+| `period_cutoff_error` | doc_id счёта | сумма счёта, валюта счёта |
+
+Сценарии взаимодействия (`team_config.interactions`): `partial_fx_boundary`, `cutoff_fx`.
+
 ## Структура
 
 | Файл | Что внутри |
@@ -42,6 +92,8 @@ python check.py
 | `runner.py` | запуск агента в отдельном процессе, общение только JSON-строками |
 | `agent_protocol.py` | сторона агента для `runner.py` + тестовые агенты (random, crash, hostile…) |
 | `check.py` | единая команда проверки |
+| `judge_adapter.py` | точки входа жюри: generate_episode, make_env, score_episode |
+| `episode_io.py` | чтение каталога эпизода с диска (ID — непрозрачные строки) |
 | `configs/` | версионированные конфигурации train/dev (`config_version`) |
 | `tests/` | тесты контракта, изоляции, генератора, калькулятора, сопоставления и награды |
 | `artifacts/` | сгенерированные эпизоды, траектории, отчёт |

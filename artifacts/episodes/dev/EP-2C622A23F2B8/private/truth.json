@@ -1,0 +1,126 @@
+[
+  {
+    "issue_id": "ISS-0001",
+    "type": "partial_payment_allocation",
+    "affected_ids": [
+      "DOC-5b411e",
+      "DOC-c49457"
+    ],
+    "expected_amount_minor": 6750000,
+    "currency": "KZT",
+    "valid_evidence_sets": [
+      [
+        "DOC-c49457",
+        "L-38b743"
+      ],
+      [
+        "DOC-c49457",
+        "L-bd5ffb"
+      ]
+    ]
+  },
+  {
+    "issue_id": "ISS-0002",
+    "type": "duplicate_invoice",
+    "affected_ids": [
+      "DOC-16021c",
+      "DOC-30e7ba"
+    ],
+    "expected_amount_minor": 410000000,
+    "currency": "KZT",
+    "valid_evidence_sets": [
+      [
+        "DOC-16021c",
+        "DOC-30e7ba"
+      ],
+      [
+        "L-5f060c",
+        "L-7edd70"
+      ],
+      [
+        "L-88a182",
+        "L-b2569b"
+      ]
+    ]
+  },
+  {
+    "issue_id": "ISS-0003",
+    "type": "fx_rate_error",
+    "affected_ids": [
+      "DOC-3ead45"
+    ],
+    "expected_amount_minor": 32950,
+    "currency": "KZT",
+    "valid_evidence_sets": [
+      [
+        "DOC-3ead45",
+        "FX-2026-01-20-EUR-KZT",
+        "L-7a9bcb"
+      ],
+      [
+        "DOC-3ead45",
+        "FX-2026-01-20-EUR-KZT",
+        "L-c4b5e1"
+      ]
+    ]
+  },
+  {
+    "issue_id": "ISS-0004",
+    "type": "period_cutoff_error",
+    "affected_ids": [
+      "DOC-0d4dbf"
+    ],
+    "expected_amount_minor": 150000000,
+    "currency": "KZT",
+    "valid_evidence_sets": [
+      [
+        "DOC-0d4dbf",
+        "L-d9fede"
+      ],
+      [
+        "DOC-0d4dbf",
+        "L-eab651"
+      ]
+    ]
+  },
+  {
+    "issue_id": "ISS-0005",
+    "type": "period_cutoff_error",
+    "affected_ids": [
+      "DOC-8e4305"
+    ],
+    "expected_amount_minor": 921000,
+    "currency": "USD",
+    "valid_evidence_sets": [
+      [
+        "DOC-8e4305",
+        "L-9a0fdf"
+      ],
+      [
+        "DOC-8e4305",
+        "L-d38b71"
+      ]
+    ]
+  },
+  {
+    "issue_id": "ISS-0006",
+    "type": "fx_rate_error",
+    "affected_ids": [
+      "DOC-8e4305"
+    ],
+    "expected_amount_minor": 402937,
+    "currency": "KZT",
+    "valid_evidence_sets": [
+      [
+        "DOC-8e4305",
+        "FX-2026-03-27-USD-KZT",
+        "L-9a0fdf"
+      ],
+      [
+        "DOC-8e4305",
+        "FX-2026-03-27-USD-KZT",
+        "L-d38b71"
+      ]
+    ]
+  }
+]

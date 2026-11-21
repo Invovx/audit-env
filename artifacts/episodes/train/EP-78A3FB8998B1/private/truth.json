@@ -1,0 +1,114 @@
+[
+  {
+    "issue_id": "ISS-0001",
+    "type": "fx_rate_error",
+    "affected_ids": [
+      "DOC-fe5fec"
+    ],
+    "expected_amount_minor": 10944600,
+    "currency": "KZT",
+    "valid_evidence_sets": [
+      [
+        "DOC-fe5fec",
+        "FX-2026-02-17-USD-KZT",
+        "L-b25e74"
+      ],
+      [
+        "DOC-fe5fec",
+        "FX-2026-02-17-USD-KZT",
+        "L-db8a7b"
+      ]
+    ]
+  },
+  {
+    "issue_id": "ISS-0002",
+    "type": "duplicate_invoice",
+    "affected_ids": [
+      "DOC-669739",
+      "DOC-902c54"
+    ],
+    "expected_amount_minor": 145000,
+    "currency": "EUR",
+    "valid_evidence_sets": [
+      [
+        "DOC-669739",
+        "DOC-902c54"
+      ]
+    ]
+  },
+  {
+    "issue_id": "ISS-0003",
+    "type": "partial_payment_allocation",
+    "affected_ids": [
+      "DOC-5090be",
+      "DOC-b5b414"
+    ],
+    "expected_amount_minor": 1280000,
+    "currency": "USD",
+    "valid_evidence_sets": [
+      [
+        "DOC-b5b414",
+        "L-194198"
+      ]
+    ]
+  },
+  {
+    "issue_id": "ISS-0004",
+    "type": "period_cutoff_error",
+    "affected_ids": [
+      "DOC-cccf50"
+    ],
+    "expected_amount_minor": 16500,
+    "currency": "USD",
+    "valid_evidence_sets": [
+      [
+        "DOC-cccf50",
+        "L-ec2739"
+      ],
+      [
+        "DOC-cccf50",
+        "L-f7268d"
+      ]
+    ]
+  },
+  {
+    "issue_id": "ISS-0005",
+    "type": "period_cutoff_error",
+    "affected_ids": [
+      "DOC-f4e9e7"
+    ],
+    "expected_amount_minor": 55000,
+    "currency": "USD",
+    "valid_evidence_sets": [
+      [
+        "DOC-f4e9e7",
+        "L-b4d366"
+      ],
+      [
+        "DOC-f4e9e7",
+        "L-b8e8fa"
+      ]
+    ]
+  },
+  {
+    "issue_id": "ISS-0006",
+    "type": "fx_rate_error",
+    "affected_ids": [
+      "DOC-f4e9e7"
+    ],
+    "expected_amount_minor": 92494,
+    "currency": "KZT",
+    "valid_evidence_sets": [
+      [
+        "DOC-f4e9e7",
+        "FX-2026-03-27-USD-KZT",
+        "L-b4d366"
+      ],
+      [
+        "DOC-f4e9e7",
+        "FX-2026-03-27-USD-KZT",
+        "L-b8e8fa"
+      ]
+    ]
+  }
+]
