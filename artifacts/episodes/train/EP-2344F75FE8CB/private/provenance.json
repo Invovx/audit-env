@@ -1,0 +1,1374 @@
+{
+  "generator_version": "1.1.0",
+  "schema_version": "1.0",
+  "episode_id": "EP-2344F75FE8CB",
+  "seed": 1009,
+  "config": {
+    "n_ledger_rows": 500,
+    "n_documents": 64,
+    "n_errors": 4,
+    "error_types": [
+      "duplicate_invoice",
+      "period_cutoff_error",
+      "partial_payment_allocation"
+    ],
+    "base_currency": "KZT",
+    "foreign_currencies": [
+      "USD",
+      "EUR"
+    ],
+    "timezone": "+00:00",
+    "period_start": "2026-07-01",
+    "period_days": 31,
+    "amount_tolerance_minor": 100,
+    "include_distractors": true,
+    "id_scheme": "randomized",
+    "id_salt": 7064
+  },
+  "id_scheme": "randomized:7064",
+  "error_plan": [
+    "duplicate_invoice",
+    "period_cutoff_error",
+    "duplicate_invoice",
+    "partial_payment_allocation"
+  ],
+  "company": {
+    "customers": [
+      {
+        "entity_id": "CUST-fcf99f",
+        "currency": "EUR"
+      },
+      {
+        "entity_id": "CUST-29775b",
+        "currency": "KZT"
+      },
+      {
+        "entity_id": "CUST-3899de",
+        "currency": "KZT"
+      },
+      {
+        "entity_id": "CUST-ecde1a",
+        "currency": "EUR"
+      },
+      {
+        "entity_id": "CUST-cb7d37",
+        "currency": "KZT"
+      },
+      {
+        "entity_id": "CUST-1cc212",
+        "currency": "EUR"
+      },
+      {
+        "entity_id": "CUST-b52634",
+        "currency": "USD"
+      },
+      {
+        "entity_id": "CUST-23d455",
+        "currency": "KZT"
+      },
+      {
+        "entity_id": "CUST-e8fa90",
+        "currency": "KZT"
+      },
+      {
+        "entity_id": "CUST-058bd6",
+        "currency": "KZT"
+      },
+      {
+        "entity_id": "CUST-936291",
+        "currency": "KZT"
+      },
+      {
+        "entity_id": "CUST-79a363",
+        "currency": "EUR"
+      },
+      {
+        "entity_id": "CUST-a3f3a4",
+        "currency": "KZT"
+      },
+      {
+        "entity_id": "CUST-d14449",
+        "currency": "EUR"
+      },
+      {
+        "entity_id": "CUST-eedea7",
+        "currency": "USD"
+      },
+      {
+        "entity_id": "CUST-027671",
+        "currency": "USD"
+      }
+    ],
+    "suppliers": [
+      "SUP-a41493",
+      "SUP-9b3640",
+      "SUP-31f0e2",
+      "SUP-c625bb",
+      "SUP-bd04bd",
+      "SUP-86c782"
+    ]
+  },
+  "stories": [
+    {
+      "story": 1,
+      "kind": "open",
+      "tags": [
+        "reserved:period_cutoff_error:early"
+      ],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-c3d286"
+        }
+      ]
+    },
+    {
+      "story": 2,
+      "kind": "split",
+      "tags": [
+        "reserved:duplicate_invoice"
+      ],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-7d5f78"
+        },
+        {
+          "table": "payments",
+          "id": "DOC-feedcc"
+        },
+        {
+          "table": "payments",
+          "id": "DOC-b9e9fc"
+        }
+      ]
+    },
+    {
+      "story": 3,
+      "kind": "paid",
+      "tags": [
+        "reserved:duplicate_invoice"
+      ],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-8db507"
+        },
+        {
+          "table": "payments",
+          "id": "DOC-0b3bc2"
+        }
+      ]
+    },
+    {
+      "story": 4,
+      "kind": "paid",
+      "tags": [
+        "reserved:partial_payment_allocation"
+      ],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-8f7db3"
+        },
+        {
+          "table": "payments",
+          "id": "DOC-531cc5"
+        }
+      ]
+    },
+    {
+      "story": 5,
+      "kind": "combined",
+      "tags": [],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-9ca4a4"
+        },
+        {
+          "table": "invoices",
+          "id": "DOC-24fc4f"
+        },
+        {
+          "table": "payments",
+          "id": "DOC-bd0a3d"
+        }
+      ]
+    },
+    {
+      "story": 6,
+      "kind": "split",
+      "tags": [],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-001d9b"
+        },
+        {
+          "table": "payments",
+          "id": "DOC-b0cd1d"
+        },
+        {
+          "table": "payments",
+          "id": "DOC-10b6d7"
+        },
+        {
+          "table": "payments",
+          "id": "DOC-85bb2b"
+        }
+      ]
+    },
+    {
+      "story": 7,
+      "kind": "return",
+      "tags": [],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-7b312d"
+        },
+        {
+          "table": "invoices",
+          "id": "DOC-3dea97"
+        },
+        {
+          "table": "payments",
+          "id": "DOC-51a563"
+        }
+      ]
+    },
+    {
+      "story": 8,
+      "kind": "overpaid",
+      "tags": [],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-887f6b"
+        },
+        {
+          "table": "payments",
+          "id": "DOC-bf437d"
+        }
+      ]
+    },
+    {
+      "story": 9,
+      "kind": "out_of_prev",
+      "tags": [],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-b0584d"
+        }
+      ]
+    },
+    {
+      "story": 10,
+      "kind": "recurring",
+      "tags": [],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-0eefad"
+        },
+        {
+          "table": "invoices",
+          "id": "DOC-87fff5"
+        },
+        {
+          "table": "invoices",
+          "id": "DOC-9995cb"
+        },
+        {
+          "table": "payments",
+          "id": "DOC-2eae47"
+        }
+      ]
+    },
+    {
+      "story": 11,
+      "kind": "boundary_end",
+      "tags": [],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-ddee95"
+        }
+      ]
+    },
+    {
+      "story": 12,
+      "kind": "boundary_start",
+      "tags": [],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-8276d2"
+        }
+      ]
+    },
+    {
+      "story": 13,
+      "kind": "tz_head_utc",
+      "tags": [],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-eaf769"
+        }
+      ]
+    },
+    {
+      "story": 14,
+      "kind": "return",
+      "tags": [],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-fa41d0"
+        },
+        {
+          "table": "invoices",
+          "id": "DOC-b9baed"
+        },
+        {
+          "table": "payments",
+          "id": "DOC-b60d35"
+        }
+      ]
+    },
+    {
+      "story": 15,
+      "kind": "paid",
+      "tags": [],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-feb2bf"
+        },
+        {
+          "table": "payments",
+          "id": "DOC-f8c667"
+        }
+      ]
+    },
+    {
+      "story": 16,
+      "kind": "open",
+      "tags": [],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-ab205c"
+        }
+      ]
+    },
+    {
+      "story": 17,
+      "kind": "split",
+      "tags": [],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-9fbc69"
+        },
+        {
+          "table": "payments",
+          "id": "DOC-4402cf"
+        },
+        {
+          "table": "payments",
+          "id": "DOC-93695b"
+        },
+        {
+          "table": "payments",
+          "id": "DOC-abe697"
+        }
+      ]
+    },
+    {
+      "story": 18,
+      "kind": "paid",
+      "tags": [],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-ae630b"
+        },
+        {
+          "table": "payments",
+          "id": "DOC-6f611c"
+        }
+      ]
+    },
+    {
+      "story": 19,
+      "kind": "open",
+      "tags": [],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-3a0976"
+        }
+      ]
+    },
+    {
+      "story": 20,
+      "kind": "paid",
+      "tags": [],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-e767e3"
+        },
+        {
+          "table": "payments",
+          "id": "DOC-dfd1e0"
+        }
+      ]
+    },
+    {
+      "story": 21,
+      "kind": "open",
+      "tags": [],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-cdf05f"
+        }
+      ]
+    },
+    {
+      "story": 22,
+      "kind": "return",
+      "tags": [],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-95f221"
+        },
+        {
+          "table": "invoices",
+          "id": "DOC-3ef9aa"
+        },
+        {
+          "table": "payments",
+          "id": "DOC-1ad2b8"
+        }
+      ]
+    },
+    {
+      "story": 23,
+      "kind": "paid",
+      "tags": [],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-dfbbea"
+        },
+        {
+          "table": "payments",
+          "id": "DOC-91fa29"
+        }
+      ]
+    },
+    {
+      "story": 24,
+      "kind": "open",
+      "tags": [],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-0f9a14"
+        }
+      ]
+    },
+    {
+      "story": 25,
+      "kind": "paid",
+      "tags": [],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-9533de"
+        },
+        {
+          "table": "payments",
+          "id": "DOC-038a0f"
+        }
+      ]
+    },
+    {
+      "story": 26,
+      "kind": "paid",
+      "tags": [],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-3327d4"
+        },
+        {
+          "table": "payments",
+          "id": "DOC-0feef2"
+        }
+      ]
+    },
+    {
+      "story": 27,
+      "kind": "paid",
+      "tags": [],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-faba75"
+        },
+        {
+          "table": "payments",
+          "id": "DOC-088c97"
+        }
+      ]
+    },
+    {
+      "story": 28,
+      "kind": "paid",
+      "tags": [],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-0a9ab0"
+        },
+        {
+          "table": "payments",
+          "id": "DOC-f0ea5c"
+        }
+      ]
+    },
+    {
+      "story": 29,
+      "kind": "return",
+      "tags": [],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-dee90d"
+        },
+        {
+          "table": "invoices",
+          "id": "DOC-ebe4a7"
+        },
+        {
+          "table": "payments",
+          "id": "DOC-f39311"
+        }
+      ]
+    },
+    {
+      "story": 30,
+      "kind": "open",
+      "tags": [],
+      "records": [
+        {
+          "table": "invoices",
+          "id": "DOC-971dea"
+        }
+      ]
+    }
+  ],
+  "clean_books_checks": {
+    "balanced": {
+      "currency": "KZT",
+      "debit_minor": 17262766534,
+      "credit_minor": 17262766534
+    },
+    "ar_open_base_minor": 3560918938,
+    "unapplied_cash_base_minor": 39600000,
+    "booked_revenue_in_base_minor": 10381869893,
+    "fx_gain_loss_base_minor": 20345686,
+    "ledger_rows": 131,
+    "documents": 62,
+    "after_errors": {
+      "balanced": {
+        "currency": "KZT",
+        "debit_minor": 19083756072,
+        "credit_minor": 19083756072
+      },
+      "ar_open_base_minor": 3984585085,
+      "unapplied_cash_base_minor": 196746629,
+      "booked_revenue_in_base_minor": 10649869893,
+      "fx_gain_loss_base_minor": 18865204,
+      "ledger_rows": 500,
+      "documents": 64
+    }
+  },
+  "mutations": [
+    {
+      "type": "duplicate_invoice",
+      "variant": "renumbered",
+      "ordinal": 0,
+      "reason": "The invoice was entered a second time; the copy has its own document and its own postings, so receivables and revenue are overstated.",
+      "ops": [
+        {
+          "op": "clone_invoice",
+          "source": {
+            "table": "invoices",
+            "id": "DOC-7d5f78"
+          },
+          "created": {
+            "table": "invoices",
+            "id": "DOC-6a9ec2"
+          },
+          "reuses_invoice_id": false,
+          "copy_booked_at": "2026-07-12T04:59:04+00:00"
+        }
+      ],
+      "mutation_id": "MUT-0001",
+      "issue_id": "ISS-0001"
+    },
+    {
+      "type": "period_cutoff_error",
+      "variant": "early",
+      "ordinal": 1,
+      "reason": "The invoice document belongs to the previous period but its postings stay inside the reporting period.",
+      "ops": [
+        {
+          "op": "set_field",
+          "record": {
+            "table": "invoices",
+            "id": "DOC-c3d286"
+          },
+          "field": "issued_at",
+          "old": "2026-07-04T12:11:36+00:00",
+          "new": "2026-06-29T23:43:36+00:00"
+        },
+        {
+          "op": "set_field",
+          "record": {
+            "table": "invoices",
+            "id": "DOC-c3d286"
+          },
+          "field": "due_at",
+          "old": "2026-07-18T12:11:36+00:00",
+          "new": "2026-07-13T23:43:36+00:00"
+        }
+      ],
+      "mutation_id": "MUT-0002",
+      "issue_id": "ISS-0002"
+    },
+    {
+      "type": "duplicate_invoice",
+      "variant": "same_invoice_id",
+      "ordinal": 2,
+      "reason": "The invoice was entered a second time; the copy has its own document and its own postings, so receivables and revenue are overstated.",
+      "ops": [
+        {
+          "op": "clone_invoice",
+          "source": {
+            "table": "invoices",
+            "id": "DOC-8db507"
+          },
+          "created": {
+            "table": "invoices",
+            "id": "DOC-49cff9"
+          },
+          "reuses_invoice_id": true,
+          "copy_booked_at": "2026-07-09T03:34:24+00:00"
+        }
+      ],
+      "mutation_id": "MUT-0003",
+      "issue_id": "ISS-0003"
+    },
+    {
+      "type": "partial_payment_allocation",
+      "variant": "partial",
+      "ordinal": 3,
+      "reason": "The payment document applies the full amount to the invoice, but the posting applies only part of it; the remainder was left in unapplied cash and the invoice still looks open in receivables.",
+      "ops": [
+        {
+          "op": "set_posted_allocation",
+          "record": {
+            "table": "payments",
+            "id": "DOC-531cc5"
+          },
+          "invoice": {
+            "table": "invoices",
+            "id": "DOC-8f7db3"
+          },
+          "document_amount_minor": 760000,
+          "posted_amount_minor": 440800
+        }
+      ],
+      "mutation_id": "MUT-0004",
+      "issue_id": "ISS-0004"
+    }
+  ],
+  "final_counts": {
+    "ledger_rows": 500,
+    "invoices": 39,
+    "payments": 25,
+    "documents": 64,
+    "fx_rates": 66
+  },
+  "id_registry": {
+    "ledger_rows": {
+      "L-fae293": "row#367",
+      "L-88d9c6": "row#252",
+      "L-df68f2": "row#402",
+      "L-ec76e1": "row#290",
+      "L-a36c82": "row#270",
+      "L-6020dc": "row#193",
+      "L-47e2bf": "row#417",
+      "L-e5346a": "row#137",
+      "L-713f99": "row#426",
+      "L-2fd9c5": "row#432",
+      "L-1abb11": "row#223",
+      "L-6a56c7": "row#177",
+      "L-6baa89": "row#277",
+      "L-1f74e5": "row#175",
+      "L-1b3b55": "row#439",
+      "L-5c598a": "row#157",
+      "L-9fe6c3": "row#209",
+      "L-0005bc": "row#163",
+      "L-286322": "row#154",
+      "L-873dd1": "row#122",
+      "L-ef2a83": "row#14",
+      "L-b8615e": "row#227",
+      "L-a71d19": "row#452",
+      "L-6fe84d": "row#391",
+      "L-f46001": "row#357",
+      "L-7931fb": "row#350",
+      "L-77d50d": "row#461",
+      "L-53155b": "row#267",
+      "L-060655": "row#53",
+      "L-b5536a": "row#161",
+      "L-703856": "row#181",
+      "L-a5cf93": "row#188",
+      "L-34b6c6": "row#230",
+      "L-6aa763": "row#16",
+      "L-ba6463": "row#304",
+      "L-6529f3": "row#246",
+      "L-eecf14": "row#85",
+      "L-f3a802": "row#416",
+      "L-e060af": "row#141",
+      "L-9ad46e": "row#110",
+      "L-ecf579": "row#96",
+      "L-16828d": "row#280",
+      "L-952319": "row#203",
+      "L-e7ebeb": "row#207",
+      "L-08b461": "row#418",
+      "L-ceef06": "row#69",
+      "L-e8056d": "row#454",
+      "L-2ba909": "row#80",
+      "L-dc0c83": "row#499",
+      "L-ea380b": "row#469",
+      "L-1abb14": "row#6",
+      "L-cd419e": "row#289",
+      "L-70a30c": "row#185",
+      "L-cfe98a": "row#431",
+      "L-823df6": "row#174",
+      "L-7b448e": "row#15",
+      "L-1bfa22": "row#2",
+      "L-f96a5d": "row#324",
+      "L-3b2201": "row#467",
+      "L-55ea99": "row#32",
+      "L-40d42b": "row#465",
+      "L-aad65c": "row#368",
+      "L-5988cd": "row#72",
+      "L-f861fb": "row#338",
+      "L-913f2f": "row#198",
+      "L-d6d6ba": "row#474",
+      "L-eac167": "row#479",
+      "L-557502": "row#88",
+      "L-9f58d7": "row#349",
+      "L-e712c5": "row#389",
+      "L-8c39d5": "row#279",
+      "L-54ddbb": "row#211",
+      "L-3c093e": "row#249",
+      "L-d321fa": "row#329",
+      "L-285d07": "row#247",
+      "L-78c6e4": "row#362",
+      "L-9dfac1": "row#254",
+      "L-11ca47": "row#218",
+      "L-976f43": "row#388",
+      "L-c1a98c": "row#281",
+      "L-22532d": "row#411",
+      "L-4119a9": "row#129",
+      "L-906ad6": "row#437",
+      "L-b654d3": "row#124",
+      "L-ce4f60": "row#378",
+      "L-62fc6b": "row#296",
+      "L-485f6b": "row#228",
+      "L-4bed8d": "row#189",
+      "L-a34468": "row#235",
+      "L-58f5d1": "row#317",
+      "L-13eaac": "row#282",
+      "L-acaf1b": "row#460",
+      "L-549780": "row#204",
+      "L-18065c": "row#283",
+      "L-4d13f4": "row#278",
+      "L-85204a": "row#146",
+      "L-770281": "row#178",
+      "L-0e70a0": "row#82",
+      "L-122db2": "row#489",
+      "L-682b3d": "row#123",
+      "L-0dfb4f": "row#395",
+      "L-e4c6e7": "row#376",
+      "L-e93f05": "row#448",
+      "L-cff680": "row#260",
+      "L-450cc3": "row#251",
+      "L-903dd6": "row#147",
+      "L-3bfa46": "row#33",
+      "L-6ce40d": "row#492",
+      "L-9cd586": "row#412",
+      "L-4123fa": "row#61",
+      "L-5ba6a2": "row#210",
+      "L-b8542b": "row#481",
+      "L-2a41dc": "row#347",
+      "L-be8481": "row#429",
+      "L-8a86f1": "row#77",
+      "L-a8d9b6": "row#128",
+      "L-d2fbd6": "row#12",
+      "L-f63446": "row#84",
+      "L-2004c0": "row#272",
+      "L-638828": "row#148",
+      "L-96aa66": "row#306",
+      "L-efd7db": "row#250",
+      "L-9e4a13": "row#363",
+      "L-41e00f": "row#440",
+      "L-47d761": "row#3",
+      "L-ab9cc6": "row#493",
+      "L-632aa5": "row#266",
+      "L-63e19c": "row#377",
+      "L-6ca934": "row#498",
+      "L-b7ae45": "row#39",
+      "L-23c72c": "row#214",
+      "L-1aa4aa": "row#91",
+      "L-52be0b": "row#117",
+      "L-5e7500": "row#162",
+      "L-5a9c45": "row#336",
+      "L-8240c2": "row#44",
+      "L-9a524a": "row#160",
+      "L-4ae382": "row#17",
+      "L-a5d0d4": "row#307",
+      "L-0c320e": "row#425",
+      "L-843e42": "row#309",
+      "L-92d63e": "row#312",
+      "L-c523a0": "row#302",
+      "L-2112e5": "row#197",
+      "L-c4b277": "row#4",
+      "L-aa6566": "row#167",
+      "L-36a082": "row#25",
+      "L-5467a7": "row#226",
+      "L-87a101": "row#442",
+      "L-fafe14": "row#379",
+      "L-49de4d": "row#100",
+      "L-3cc7fa": "row#140",
+      "L-bede80": "row#305",
+      "L-fee24a": "row#485",
+      "L-3a240f": "row#241",
+      "L-7084c3": "row#455",
+      "L-7c0038": "row#284",
+      "L-eb57ec": "row#60",
+      "L-fe201d": "row#255",
+      "L-1f2987": "row#424",
+      "L-fc1371": "row#234",
+      "L-6d4a5a": "row#49",
+      "L-1fa9ce": "row#330",
+      "L-828dde": "row#257",
+      "L-95c5cc": "row#208",
+      "L-f0bc3d": "row#319",
+      "L-524eba": "row#18",
+      "L-3c2a8e": "row#143",
+      "L-e3ac72": "row#176",
+      "L-922d3f": "row#275",
+      "L-986d95": "row#264",
+      "L-024422": "row#471",
+      "L-f0c744": "row#472",
+      "L-48e235": "row#331",
+      "L-8a9198": "row#21",
+      "L-e7595c": "row#142",
+      "L-332141": "row#28",
+      "L-7d9f0e": "row#126",
+      "L-91c478": "row#372",
+      "L-08bad1": "row#149",
+      "L-36a46c": "row#451",
+      "L-5966e7": "row#139",
+      "L-60ce15": "row#131",
+      "L-488b9a": "row#341",
+      "L-75c538": "row#434",
+      "L-dac88c": "row#136",
+      "L-5e4d64": "row#318",
+      "L-b9c20e": "row#171",
+      "L-7aefac": "row#314",
+      "L-8d23c2": "row#101",
+      "L-a0bd6f": "row#111",
+      "L-36df71": "row#354",
+      "L-d8a5d8": "row#364",
+      "L-e190b6": "row#127",
+      "L-ac398b": "row#486",
+      "L-521095": "row#50",
+      "L-d57576": "row#180",
+      "L-b5ff4f": "row#433",
+      "L-381c03": "row#475",
+      "L-e7551c": "row#29",
+      "L-9b2b7b": "row#172",
+      "L-e5fc38": "row#10",
+      "L-10b10a": "row#466",
+      "L-f616a8": "row#407",
+      "L-450eb4": "row#384",
+      "L-87ce76": "row#369",
+      "L-018b67": "row#155",
+      "L-cee245": "row#192",
+      "L-01812d": "row#113",
+      "L-d8acf1": "row#242",
+      "L-2ab6f5": "row#206",
+      "L-d809c7": "row#118",
+      "L-6fa744": "row#265",
+      "L-e9f7b0": "row#483",
+      "L-3b0cbf": "row#361",
+      "L-92d61d": "row#428",
+      "L-fd766c": "row#79",
+      "L-3c06d7": "row#300",
+      "L-f31d8a": "row#183",
+      "L-d42f4e": "row#355",
+      "L-b776df": "row#256",
+      "L-16f52c": "row#371",
+      "L-6084a1": "row#67",
+      "L-698de8": "row#273",
+      "L-a37588": "row#476",
+      "L-058e75": "row#298",
+      "L-f558b9": "row#45",
+      "L-cd3a7d": "row#34",
+      "L-1683b5": "row#274",
+      "L-ed48cf": "row#54",
+      "L-568215": "row#179",
+      "L-24d6c0": "row#52",
+      "L-9e3191": "row#26",
+      "L-d2ee91": "row#13",
+      "L-628ff4": "row#374",
+      "L-4fd2c4": "row#83",
+      "L-8d5acb": "row#353",
+      "L-28af1e": "row#42",
+      "L-e4848a": "row#169",
+      "L-b0df30": "row#288",
+      "L-1f272c": "row#258",
+      "L-09d11f": "row#93",
+      "L-c41bce": "row#322",
+      "L-8cfa4c": "row#342",
+      "L-552477": "row#221",
+      "L-9b7c74": "row#253",
+      "L-c6d924": "row#201",
+      "L-6dae6a": "row#468",
+      "L-711738": "row#48",
+      "L-07cebf": "row#121",
+      "L-8b0d44": "row#239",
+      "L-1d4f1c": "row#356",
+      "L-3a3195": "row#339",
+      "L-586eae": "row#310",
+      "L-9dfa64": "row#119",
+      "L-6c7f57": "row#0",
+      "L-b3ee8e": "row#335",
+      "L-e92aee": "row#478",
+      "L-bc5091": "row#37",
+      "L-54681e": "row#345",
+      "L-953146": "row#116",
+      "L-6d7280": "row#480",
+      "L-8443d0": "row#375",
+      "L-e06422": "row#97",
+      "L-e3c0c6": "row#387",
+      "L-e40372": "row#89",
+      "L-a4b159": "row#57",
+      "L-6999d1": "row#59",
+      "L-8913cb": "row#46",
+      "L-489c39": "row#396",
+      "L-98e020": "row#464",
+      "L-5a2ff5": "row#399",
+      "L-4361d8": "row#419",
+      "L-5e6f79": "row#138",
+      "L-7a372c": "row#400",
+      "L-d400bb": "row#365",
+      "L-4aaea8": "row#158",
+      "L-9ddd3b": "row#346",
+      "L-6ada57": "row#5",
+      "L-cdda6f": "row#150",
+      "L-c757a5": "row#366",
+      "L-3ab497": "row#490",
+      "L-1691dc": "row#24",
+      "L-e54b3e": "row#233",
+      "L-ca2e0e": "row#145",
+      "L-b87c6d": "row#195",
+      "L-bc2021": "row#328",
+      "L-d575f9": "row#458",
+      "L-691d54": "row#11",
+      "L-d56a6b": "row#151",
+      "L-ee7d81": "row#415",
+      "L-d2ad13": "row#164",
+      "L-d50a9b": "row#35",
+      "L-e2b733": "row#488",
+      "L-e1c292": "row#66",
+      "L-f96dbd": "row#405",
+      "L-8a6872": "row#107",
+      "L-0a9362": "row#332",
+      "L-60a6c7": "row#348",
+      "L-c156d7": "row#491",
+      "L-ae8b29": "row#334",
+      "L-7eb7a6": "row#261",
+      "L-2f2553": "row#108",
+      "L-e2bd52": "row#231",
+      "L-3b2e76": "row#217",
+      "L-2f1a9f": "row#98",
+      "L-0dc7be": "row#166",
+      "L-651303": "row#409",
+      "L-ef0b82": "row#238",
+      "L-e9456e": "row#337",
+      "L-b05eaf": "row#199",
+      "L-48ec0b": "row#62",
+      "L-b09803": "row#484",
+      "L-9ce858": "row#404",
+      "L-fdf6f1": "row#134",
+      "L-31e104": "row#120",
+      "L-671cae": "row#497",
+      "L-05fdc8": "row#55",
+      "L-a88df7": "row#311",
+      "L-103493": "row#156",
+      "L-c469e0": "row#385",
+      "L-ea1ca4": "row#205",
+      "L-8ab6a3": "row#215",
+      "L-36634e": "row#38",
+      "L-212be8": "row#285",
+      "L-b6819e": "row#386",
+      "L-8ce987": "row#229",
+      "L-068302": "row#263",
+      "L-e9518f": "row#184",
+      "L-48bfdf": "row#104",
+      "L-c036c3": "row#383",
+      "L-c2ed55": "row#359",
+      "L-7c1c7f": "row#9",
+      "L-5b8790": "row#40",
+      "L-23a86a": "row#212",
+      "L-e0babc": "row#130",
+      "L-48573c": "row#51",
+      "L-ef9018": "row#70",
+      "L-ce09da": "row#436",
+      "L-ab3e48": "row#381",
+      "L-228146": "row#74",
+      "L-df4cf1": "row#477",
+      "L-5524b9": "row#398",
+      "L-a07ad4": "row#8",
+      "L-6489b6": "row#153",
+      "L-06471e": "row#370",
+      "L-4c2c9e": "row#94",
+      "L-b35048": "row#358",
+      "L-3524f2": "row#219",
+      "L-a98828": "row#390",
+      "L-dcac23": "row#95",
+      "L-c59893": "row#308",
+      "L-baf824": "row#392",
+      "L-330732": "row#316",
+      "L-031c3d": "row#286",
+      "L-59fc2e": "row#401",
+      "L-6b0352": "row#92",
+      "L-8b2a8d": "row#262",
+      "L-470a24": "row#463",
+      "L-339a93": "row#422",
+      "L-44ae7b": "row#132",
+      "L-4c2f13": "row#102",
+      "L-88fae2": "row#360",
+      "L-d6d888": "row#202",
+      "L-37aaae": "row#65",
+      "L-b76822": "row#293",
+      "L-53d9ab": "row#106",
+      "L-7586e2": "row#343",
+      "L-247350": "row#99",
+      "L-e2cd3d": "row#76",
+      "L-be3153": "row#259",
+      "L-c2b883": "row#393",
+      "L-505795": "row#276",
+      "L-0fd0ff": "row#292",
+      "L-031710": "row#23",
+      "L-e3eee9": "row#173",
+      "L-5d4fbf": "row#182",
+      "L-2d4fa4": "row#220",
+      "L-542bdf": "row#403",
+      "L-590676": "row#41",
+      "L-d7bcac": "row#115",
+      "L-65dc1c": "row#216",
+      "L-a390d3": "row#321",
+      "L-b87aa8": "row#135",
+      "L-8d49ff": "row#168",
+      "L-fc36e9": "row#438",
+      "L-f6ea5c": "row#200",
+      "L-438d10": "row#427",
+      "L-4a97c7": "row#435",
+      "L-c237cf": "row#133",
+      "L-966953": "row#430",
+      "L-b833ba": "row#165",
+      "L-b31528": "row#87",
+      "L-528723": "row#380",
+      "L-87c417": "row#20",
+      "L-a26632": "row#194",
+      "L-23d5aa": "row#47",
+      "L-4a36cb": "row#56",
+      "L-9e34f7": "row#487",
+      "L-9d313e": "row#105",
+      "L-b386a7": "row#327",
+      "L-d1b19e": "row#225",
+      "L-72d29b": "row#397",
+      "L-93bfca": "row#222",
+      "L-b50215": "row#406",
+      "L-c72fcf": "row#297",
+      "L-68f7b1": "row#58",
+      "L-6b7980": "row#453",
+      "L-8788f7": "row#482",
+      "L-e60e65": "row#408",
+      "L-88360d": "row#243",
+      "L-a0c044": "row#90",
+      "L-690a4f": "row#43",
+      "L-bec656": "row#224",
+      "L-c84ba9": "row#462",
+      "L-1ad7d8": "row#159",
+      "L-805c13": "row#291",
+      "L-82ce02": "row#445",
+      "L-57098c": "row#152",
+      "L-56beeb": "row#444",
+      "L-419855": "row#7",
+      "L-ce6690": "row#196",
+      "L-c6ec22": "row#420",
+      "L-0db2b4": "row#268",
+      "L-cad844": "row#269",
+      "L-44fa10": "row#325",
+      "L-7637b3": "row#382",
+      "L-05975a": "row#244",
+      "L-c67e1e": "row#30",
+      "L-c84ac0": "row#73",
+      "L-aef43a": "row#443",
+      "L-9fd074": "row#112",
+      "L-781e51": "row#313",
+      "L-f90a38": "row#19",
+      "L-531757": "row#494",
+      "L-d3264d": "row#299",
+      "L-4543c6": "row#470",
+      "L-e4745c": "row#237",
+      "L-42f90b": "row#271",
+      "L-a9affb": "row#340",
+      "L-88ccdf": "row#421",
+      "L-e94295": "row#457",
+      "L-6faf03": "row#447",
+      "L-943165": "row#294",
+      "L-dca2eb": "row#245",
+      "L-b8b1cd": "row#423",
+      "L-1a680f": "row#68",
+      "L-15486a": "row#320",
+      "L-4f4be0": "row#109",
+      "L-a0055a": "row#414",
+      "L-8c7f95": "row#287",
+      "L-873f93": "row#248",
+      "L-580b11": "row#326",
+      "L-a67043": "row#352",
+      "L-293d0e": "row#125",
+      "L-0f5fbc": "row#190",
+      "L-7b2213": "row#213",
+      "L-93381e": "row#456",
+      "L-6d2a0a": "row#86",
+      "L-ef2641": "row#394",
+      "L-09204a": "row#496",
+      "L-902052": "row#333",
+      "L-bf46c8": "row#236",
+      "L-a78c65": "row#351",
+      "L-6a442a": "row#232",
+      "L-effc04": "row#27",
+      "L-ca7ce5": "row#187",
+      "L-820a59": "row#495",
+      "L-9b02fd": "row#64",
+      "L-04984d": "row#240",
+      "L-85aad4": "row#373",
+      "L-c2f7a0": "row#170",
+      "L-ceee67": "row#413",
+      "L-b2e777": "row#459",
+      "L-1e082b": "row#71",
+      "L-7ba9ce": "row#75",
+      "L-a0b3c4": "row#449",
+      "L-8696e2": "row#301",
+      "L-87dcf9": "row#36",
+      "L-d4e391": "row#441",
+      "L-ace14f": "row#81",
+      "L-35c65f": "row#114",
+      "L-de62ec": "row#344",
+      "L-6d48ea": "row#303",
+      "L-c7722b": "row#446",
+      "L-8e0bc9": "row#31",
+      "L-77d012": "row#323",
+      "L-73db50": "row#410",
+      "L-06980e": "row#103",
+      "L-b75c26": "row#450",
+      "L-1e2794": "row#295",
+      "L-6fb15e": "row#22",
+      "L-bb6cbf": "row#186",
+      "L-db7749": "row#63",
+      "L-a6e369": "row#473",
+      "L-abc4a3": "row#1",
+      "L-c5648c": "row#144",
+      "L-762a36": "row#315",
+      "L-b5bc6b": "row#191",
+      "L-334c7d": "row#78"
+    },
+    "documents": {
+      "DOC-ae630b": "invoice#39",
+      "DOC-dfbbea": "invoice#48",
+      "DOC-9995cb": "invoice#24",
+      "DOC-0a9ab0": "invoice#57",
+      "DOC-8276d2": "invoice#27",
+      "DOC-3ef9aa": "invoice#46",
+      "DOC-6a9ec2": "invoice#63",
+      "DOC-0eefad": "invoice#22",
+      "DOC-c3d286": "invoice#1",
+      "DOC-fa41d0": "invoice#29",
+      "DOC-b9baed": "invoice#30",
+      "DOC-9fbc69": "invoice#35",
+      "DOC-3a0976": "invoice#41",
+      "DOC-87fff5": "invoice#23",
+      "DOC-eaf769": "invoice#28",
+      "DOC-3327d4": "invoice#53",
+      "DOC-cdf05f": "invoice#44",
+      "DOC-feb2bf": "invoice#32",
+      "DOC-0f9a14": "invoice#50",
+      "DOC-b0584d": "invoice#21",
+      "DOC-e767e3": "invoice#42",
+      "DOC-8db507": "invoice#5",
+      "DOC-ebe4a7": "invoice#60",
+      "DOC-7b312d": "invoice#16",
+      "DOC-24fc4f": "invoice#10",
+      "DOC-ab205c": "invoice#34",
+      "DOC-7d5f78": "invoice#2",
+      "DOC-8f7db3": "invoice#7",
+      "DOC-9ca4a4": "invoice#9",
+      "DOC-ddee95": "invoice#26",
+      "DOC-95f221": "invoice#45",
+      "DOC-faba75": "invoice#55",
+      "DOC-9533de": "invoice#51",
+      "DOC-dee90d": "invoice#59",
+      "DOC-3dea97": "invoice#17",
+      "DOC-887f6b": "invoice#19",
+      "DOC-49cff9": "invoice#64",
+      "DOC-971dea": "invoice#62",
+      "DOC-001d9b": "invoice#12",
+      "DOC-abe697": "payment#38",
+      "DOC-91fa29": "payment#49",
+      "DOC-bd0a3d": "payment#11",
+      "DOC-10b6d7": "payment#14",
+      "DOC-93695b": "payment#37",
+      "DOC-0b3bc2": "payment#6",
+      "DOC-f0ea5c": "payment#58",
+      "DOC-6f611c": "payment#40",
+      "DOC-b0cd1d": "payment#13",
+      "DOC-51a563": "payment#18",
+      "DOC-feedcc": "payment#3",
+      "DOC-1ad2b8": "payment#47",
+      "DOC-dfd1e0": "payment#43",
+      "DOC-f39311": "payment#61",
+      "DOC-088c97": "payment#56",
+      "DOC-b60d35": "payment#31",
+      "DOC-bf437d": "payment#20",
+      "DOC-531cc5": "payment#8",
+      "DOC-4402cf": "payment#36",
+      "DOC-2eae47": "payment#25",
+      "DOC-b9e9fc": "payment#4",
+      "DOC-038a0f": "payment#52",
+      "DOC-0feef2": "payment#54",
+      "DOC-f8c667": "payment#33",
+      "DOC-85bb2b": "payment#15"
+    },
+    "invoice_ids": {
+      "INV-695580": "invoice_number#39",
+      "INV-60ff5c": "invoice_number#48",
+      "INV-c02c18": "invoice_number#24",
+      "INV-f1e8d1": "invoice_number#57",
+      "INV-1ec158": "invoice_number#27",
+      "CN-fff301": "invoice_number#46",
+      "INV-d92bc4": "invoice_number#63",
+      "INV-3302bd": "invoice_number#22",
+      "INV-511749": "invoice_number#1",
+      "INV-51b760": "invoice_number#29",
+      "CN-ed8922": "invoice_number#30",
+      "INV-90a4c0": "invoice_number#35",
+      "INV-1e38ef": "invoice_number#41",
+      "INV-3310e5": "invoice_number#23",
+      "INV-3a1f62": "invoice_number#28",
+      "INV-397dc5": "invoice_number#53",
+      "INV-2b3d79": "invoice_number#44",
+      "INV-39db84": "invoice_number#32",
+      "INV-aeac6f": "invoice_number#50",
+      "INV-21656e": "invoice_number#21",
+      "INV-8d8965": "invoice_number#42",
+      "INV-43dac4": "invoice_number#5",
+      "CN-529456": "invoice_number#60",
+      "INV-0794b4": "invoice_number#16",
+      "INV-aca101": "invoice_number#10",
+      "INV-b61eed": "invoice_number#34",
+      "INV-c81fd8": "invoice_number#2",
+      "INV-228f70": "invoice_number#7",
+      "INV-603226": "invoice_number#9",
+      "INV-1274a6": "invoice_number#26",
+      "INV-cc135a": "invoice_number#45",
+      "INV-9b2f00": "invoice_number#55",
+      "INV-b6cf12": "invoice_number#51",
+      "INV-f32e6b": "invoice_number#59",
+      "CN-3850a9": "invoice_number#17",
+      "INV-17a573": "invoice_number#19",
+      "INV-1850ba": "invoice_number#62",
+      "INV-d50fea": "invoice_number#12"
+    },
+    "payment_ids": {
+      "PAY-497152": "payment_number#38",
+      "PAY-ae4310": "payment_number#49",
+      "PAY-5ead4d": "payment_number#11",
+      "PAY-261241": "payment_number#14",
+      "PAY-4ae1f8": "payment_number#37",
+      "PAY-441a8e": "payment_number#6",
+      "PAY-101bd6": "payment_number#58",
+      "PAY-bfd9e2": "payment_number#40",
+      "PAY-1b8781": "payment_number#13",
+      "PAY-8fd4c1": "payment_number#18",
+      "PAY-330fc8": "payment_number#3",
+      "PAY-de7768": "payment_number#47",
+      "PAY-670454": "payment_number#43",
+      "PAY-87938f": "payment_number#61",
+      "PAY-0a29dd": "payment_number#56",
+      "PAY-f378de": "payment_number#31",
+      "PAY-3f546a": "payment_number#20",
+      "PAY-85c962": "payment_number#8",
+      "PAY-fdc514": "payment_number#36",
+      "PAY-2d57eb": "payment_number#25",
+      "PAY-2e0683": "payment_number#4",
+      "PAY-853f1b": "payment_number#52",
+      "PAY-e6aecb": "payment_number#54",
+      "PAY-511ab8": "payment_number#33",
+      "PAY-75b637": "payment_number#15"
+    },
+    "entities": {
+      "CUST-fcf99f": "entity#CUST-001",
+      "CUST-29775b": "entity#CUST-002",
+      "CUST-3899de": "entity#CUST-003",
+      "CUST-ecde1a": "entity#CUST-004",
+      "CUST-cb7d37": "entity#CUST-005",
+      "CUST-1cc212": "entity#CUST-006",
+      "CUST-b52634": "entity#CUST-007",
+      "CUST-23d455": "entity#CUST-008",
+      "CUST-e8fa90": "entity#CUST-009",
+      "CUST-058bd6": "entity#CUST-010",
+      "CUST-936291": "entity#CUST-011",
+      "CUST-79a363": "entity#CUST-012",
+      "CUST-a3f3a4": "entity#CUST-013",
+      "CUST-d14449": "entity#CUST-014",
+      "CUST-eedea7": "entity#CUST-015",
+      "CUST-027671": "entity#CUST-016",
+      "SUP-a41493": "entity#SUP-001",
+      "SUP-9b3640": "entity#SUP-002",
+      "SUP-31f0e2": "entity#SUP-003",
+      "SUP-c625bb": "entity#SUP-004",
+      "SUP-bd04bd": "entity#SUP-005",
+      "SUP-86c782": "entity#SUP-006"
+    }
+  }
+}

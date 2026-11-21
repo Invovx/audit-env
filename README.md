@@ -39,6 +39,8 @@ python check.py
 | `safe_calc.py` | калькулятор на `ast` + `Decimal`, без `eval` |
 | `evaluator.py` | сопоставление один к одному, P/R/F1, награда; не импортирует генератор и среду |
 | `baselines.py` | 4 базовые политики |
+| `runner.py` | запуск агента в отдельном процессе, общение только JSON-строками |
+| `agent_protocol.py` | сторона агента для `runner.py` + тестовые агенты (random, crash, hostile…) |
 | `check.py` | единая команда проверки |
 | `configs/` | версионированные конфигурации train/dev (`config_version`) |
 | `tests/` | тесты контракта, изоляции, генератора, калькулятора, сопоставления и награды |
@@ -63,6 +65,14 @@ obs, reward, terminated, truncated, info = env.step(
 `calculator(expression)`, `submit(findings)`. Таблицы: `ledger`, `invoices`, `payments`, `fx`.
 
 Награда: `clip(2*F1 - 1 - 0.002*inspection_steps, -1, 1)`, выдаётся только при завершении.
+
+## Агент в отдельном процессе
+
+```bash
+python runner.py --seed 1000 --dummy-agent random
+```
+
+Эталон и оценщик остаются в процессе `runner.py`; агент видит только наблюдения.
 
 ## Файлы эпизода
 

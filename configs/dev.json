@@ -1,5 +1,5 @@
 {
-  "config_version": "1.0",
+  "config_version": "1.1",
   "split": "dev",
   "episodes": [
     {
@@ -15,7 +15,9 @@
       "config": {
         "n_ledger_rows": 900,
         "n_documents": 120,
-        "n_errors": 0
+        "n_errors": 0,
+        "id_scheme": "randomized",
+        "id_salt": 14008
       }
     },
     {
@@ -31,7 +33,9 @@
       "config": {
         "n_ledger_rows": 600,
         "n_documents": 60,
-        "n_errors": 4
+        "n_errors": 4,
+        "id_scheme": "randomized",
+        "id_salt": 14022
       }
     },
     {
@@ -47,7 +51,9 @@
       "config": {
         "n_ledger_rows": 1200,
         "n_documents": 140,
-        "n_errors": 8
+        "n_errors": 8,
+        "id_scheme": "randomized",
+        "id_salt": 14036
       }
     },
     {
@@ -64,7 +70,9 @@
         "n_ledger_rows": 300,
         "n_documents": 30,
         "n_errors": 3,
-        "timezone": "-03:30"
+        "timezone": "-03:30",
+        "id_scheme": "randomized",
+        "id_salt": 14050
       }
     },
     {
@@ -88,7 +96,9 @@
         "n_errors": 4,
         "timezone": "+00:00",
         "period_start": "2026-07-01",
-        "period_days": 31
+        "period_days": 31,
+        "id_scheme": "randomized",
+        "id_salt": 14064
       }
     }
   ]

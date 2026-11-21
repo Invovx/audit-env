@@ -105,8 +105,8 @@ class AuditEnv:
         return self.MAX_STEPS - self._steps_used
 
     # ------------------------------------------------------------------ #
-    def reset(self, seed: int, config: Any = None) -> tuple:
-        episode = generate_episode(seed, config)   # validates seed/config, may raise
+    def reset(self, seed: int, config: Any = None, *, id_scheme: Any = None) -> tuple:
+        episode = generate_episode(seed, config, id_scheme=id_scheme)   # validates seed/config, may raise
         fx_rows = [{"fx_id": S.fx_record_id(r), **r} for r in episode.fx]
         tables = {
             "ledger": copy.deepcopy(episode.ledger),
@@ -171,6 +171,38 @@ class AuditEnv:
         except safe_calc.CalcError as exc:
             obs = self._error_obs("calculator_error", str(exc))
         return obs, 0.0, False, False, self._info()
+
+    # ------------------------------------------------------------------ #
+    ABORT_REASONS = ("agent_exited", "timeout", "protocol_error", "oversized_message")
+
+    def abort(self, reason: str) -> tuple:
+        """End the episode from the harness side (agent crash, timeout, ...).
+
+        Graded exactly like running out of steps: ``truncated=True`` and the
+        answer is empty; every step used so far counts as inspection.  Does
+        not consume a step.  ``reason`` must be one of ``ABORT_REASONS``.
+        """
+        if self._evaluator is None:
+            raise RuntimeError("reset() must be called before abort()")
+        if reason not in self.ABORT_REASONS:
+            raise ValueError(f"reason must be one of {self.ABORT_REASONS}")
+        if self._done:
+            obs = self._error_obs("episode_finished", "The episode is over; call reset().")
+            return obs, 0.0, self._terminated, self._truncated, self._info()
+        result = self._evaluator.finalize(None, self._steps_used, truncated=True, reason=reason)
+        self._done = self._truncated = True
+        obs = {"kind": "truncated",
+               "message": f"Episode aborted by the runner ({reason}); the answer is empty.",
+               "steps_remaining": self.steps_remaining}
+        return obs, *self._terminal(result, terminated=False)
+
+    @property
+    def done(self) -> bool:
+        return self._done
+
+    @property
+    def episode_id(self) -> Optional[str]:
+        return self._manifest.get("episode_id") if self._manifest else None
 
     # ------------------------------------------------------------------ #
     def _terminal(self, result: EvalResult, terminated: bool) -> tuple:

@@ -37,6 +37,9 @@ STEP_PENALTY = 0.002
 
 TABLES = ("ledger", "invoices", "payments", "fx")
 
+ID_SCHEMES = ("sequential", "randomized")
+PRESENTATION_FIELDS = ("id_scheme", "id_salt")
+
 ISSUE_DUPLICATE_INVOICE = "duplicate_invoice"
 ISSUE_PERIOD_CUTOFF = "period_cutoff_error"
 ISSUE_PARTIAL_PAYMENT = "partial_payment_allocation"
@@ -236,8 +239,15 @@ class EpisodeConfig:
     period_days: int = 90
     amount_tolerance_minor: int = 100
     include_distractors: bool = True
+    # Presentation-only fields: they change ids and row order, never the history.
+    id_scheme: str = "sequential"
+    id_salt: int = 0
 
     def __post_init__(self) -> None:
+        _require(isinstance(self.id_scheme, str) and self.id_scheme in ID_SCHEMES,
+                 f"config.id_scheme: must be one of {list(ID_SCHEMES)}")
+        _require(is_int(self.id_salt) and 0 <= self.id_salt < 2 ** 63,
+                 "config.id_salt: must be an integer in 0..2**63-1")
         for name in ("n_ledger_rows", "n_documents", "n_errors", "period_days",
                      "amount_tolerance_minor"):
             _require(is_int(getattr(self, name)), f"config.{name}: must be an integer")
@@ -286,6 +296,18 @@ class EpisodeConfig:
 
     def canonical_json(self) -> str:
         return json.dumps(self.to_dict(), sort_keys=True, separators=(",", ":"))
+
+    def history_dict(self) -> dict:
+        """Fields that shape the company history (presentation fields excluded)."""
+        return {k: v for k, v in self.to_dict().items() if k not in PRESENTATION_FIELDS}
+
+    def history_json(self) -> str:
+        """Canonical JSON of ``history_dict`` - the RNG material of the history.
+
+        It is byte-identical to the Stage 1 ``canonical_json`` for configs that
+        do not use the presentation fields, so old episodes are unchanged.
+        """
+        return json.dumps(self.history_dict(), sort_keys=True, separators=(",", ":"))
 
     @classmethod
     def from_dict(cls, data: Mapping[str, Any]) -> "EpisodeConfig":

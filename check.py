@@ -32,6 +32,7 @@ import schemas as S  # noqa: E402
 from baselines import AGENT_POLICIES, OraclePolicy  # noqa: E402
 from env import AuditEnv  # noqa: E402
 from generator import generate_episode, write_episode  # noqa: E402
+from runner import dummy_agent_command, run_episode_subprocess  # noqa: E402
 
 ART = ROOT / "artifacts"
 SPLITS = ("train", "dev")
@@ -140,8 +141,25 @@ def main() -> int:
             if any(i["reward"] > 1.0 or i["reward"] < -1.0 for i in results[(split, policy)]):
                 failures.append(f"{split}: reward out of [-1, 1] for {policy}")
 
+    print("\n[+] isolated runner: agent in a separate process, evaluator stays in the harness")
+    isolated = []
+    for split, seed, config, ep in episodes[:3]:
+        for agent in ("random", "hostile"):
+            res = run_episode_subprocess(seed, dummy_agent_command(agent, agent_seed=seed), config=config)
+            blob = json.dumps(res.trajectory, ensure_ascii=False)
+            leaked = any(m in blob for m in LEAK_MARKERS) or any(
+                t["issue_id"] in blob for t in ep.truth)
+            if leaked:
+                failures.append(f"runner: {agent} saw closed data on {ep.episode_id}")
+            isolated.append({"episode_id": res.episode_id, "agent": agent, "error": res.error,
+                             "reward": res.eval_result.get("reward"), "leak": leaked,
+                             "seconds": round(res.elapsed_sec, 3)})
+            print(f"  {split:5} {agent:8} reward={res.eval_result.get('reward')!s:7} "
+                  f"leak={leaked} {res.elapsed_sec:.2f}s")
+
     (ART / "report.json").write_text(S.dump_json({"public_data_sha256": digest.hexdigest(),
-                                                   "failures": failures, "results": report}),
+                                                   "failures": failures, "results": report,
+                                                   "isolated_runner": isolated}),
                                      encoding="utf-8")
     print("\nartifacts: artifacts/episodes/, artifacts/trajectories.jsonl, artifacts/report.json")
     if failures:

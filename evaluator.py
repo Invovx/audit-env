@@ -155,7 +155,8 @@ class Evaluator:
         return EvalResult(reward, f1, precision, recall, tp, fp, fn, inspection_steps,
                           True, truncated)
 
-    def finalize(self, payload: Any, inspection_steps: int, *, truncated: bool = False) -> EvalResult:
+    def finalize(self, payload: Any, inspection_steps: int, *, truncated: bool = False,
+                 reason: Optional[str] = None) -> EvalResult:
         """Grade the episode once and keep the result inside the evaluator."""
         if self._final is not None:
             raise RuntimeError("episode already graded")
@@ -163,7 +164,10 @@ class Evaluator:
         if result.error is not None:
             self._log.append(f"invalid submission: {result.error}")
         if truncated:
-            self._log.append("step budget exhausted: empty answer graded")
+            if reason is None:
+                self._log.append("step budget exhausted: empty answer graded")
+            else:
+                self._log.append(f"episode aborted ({reason}): empty answer graded")
         self._final = result
         return result
 

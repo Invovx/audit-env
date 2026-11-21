@@ -1,0 +1,11 @@
+{
+  "config_version": "1.1",
+  "seed": 2005,
+  "config": {
+    "n_ledger_rows": 1200,
+    "n_documents": 140,
+    "n_errors": 8,
+    "id_scheme": "randomized",
+    "id_salt": 14036
+  }
+}

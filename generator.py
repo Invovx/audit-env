@@ -1071,27 +1071,49 @@ MUTATORS: dict = {m.name: m for m in (DuplicateInvoice(), PeriodCutoffError(),
 
 
 # --------------------------------------------------------------------------- #
-# Id schemes (ordering + naming); Stage 2 can subclass to shuffle / rename
+# Id schemes (ordering + naming)
 # --------------------------------------------------------------------------- #
 @dataclass
 class Layout:
+    """Public order of every table and the naming of entities.
+
+    ``fx=None`` keeps the generator's FX order; ``entity_map`` renames
+    customers/suppliers (missing keys keep their original name).
+    """
+
     ledger: list
     invoices: list
     payments: list
+    fx: Optional[list] = None
+    entity_map: dict = field(default_factory=dict)
 
 
 class IdScheme(ABC):
-    """Strategy that orders records and assigns every public identifier."""
+    """Strategy that orders records and assigns every public identifier.
+
+    An id scheme is *presentation only*: it may reorder rows and rename ids
+    but never changes amounts, timestamps, links or the set of records.
+    The reference answer is resolved after ``assign`` through object
+    references, so it follows any renaming automatically.
+    """
+
+    name = "abstract"
+
+    def fingerprint(self) -> str:
+        """Stable text describing the scheme (enters the episode id)."""
+        return self.name
 
     @abstractmethod
-    def assign(self, books: Books, ledger_rows: list) -> Layout:
+    def assign(self, books: Books, ledger_rows: list, rng: Optional[DetRng] = None) -> Layout:
         ...
 
 
 class SequentialIdScheme(IdScheme):
-    """Chronological order, readable sequential ids."""
+    """Chronological order, readable sequential ids (Stage 1 behaviour)."""
 
-    def assign(self, books: Books, ledger_rows: list) -> Layout:
+    name = "sequential"
+
+    def assign(self, books: Books, ledger_rows: list, rng: Optional[DetRng] = None) -> Layout:
         year = books.ctx.start.year
         ledger = list(ledger_rows)
         for n, row in enumerate(ledger, start=1):
@@ -1120,6 +1142,89 @@ class SequentialIdScheme(IdScheme):
         for n, pay in enumerate(payments, start=1):
             pay.payment_id = f"PAY-{year}-{n:04d}"
         return Layout(ledger, invoices, payments)
+
+
+class _HexIds:
+    """Collision-free 6-hex-digit ids per namespace, drawn from a DetRng."""
+
+    SPACE = 0xFFFFFF
+
+    def __init__(self, rng: DetRng) -> None:
+        self._rng = rng
+        self._used: dict = {}
+
+    def draw(self, namespace: str) -> str:
+        used = self._used.setdefault(namespace, set())
+        if len(used) > self.SPACE // 2:
+            raise GeneratorError(f"id space exhausted for {namespace}")
+        while True:
+            value = f"{self._rng.randint(0, self.SPACE):06x}"
+            if value not in used:
+                used.add(value)
+                return value
+
+
+class RandomizedIdScheme(IdScheme):
+    """Shuffled row order and random-looking hex ids (``DOC-91b0e4``).
+
+    Deterministic: the same (seed, history config, salt) always gives the
+    same order and the same ids.  ``salt`` selects an independent renaming
+    of the very same history, which enables paired invariance checks.
+    """
+
+    name = "randomized"
+
+    def __init__(self, salt: int = 0) -> None:
+        if not S.is_int(salt) or not 0 <= salt < 2 ** 63:
+            raise S.SchemaError("id_salt: must be an integer in 0..2**63-1")
+        self.salt = salt
+
+    def fingerprint(self) -> str:
+        return f"{self.name}:{self.salt}"
+
+    def assign(self, books: Books, ledger_rows: list, rng: Optional[DetRng] = None) -> Layout:
+        if rng is None:
+            raise GeneratorError("RandomizedIdScheme needs the episode RNG")
+        base = rng.fork(f"randomized/{self.salt}")
+        ids = _HexIds(base.fork("ids"))
+
+        ledger = list(ledger_rows)
+        base.fork("order/ledger").shuffle(ledger)
+        invoices = list(books.invoices)
+        base.fork("order/invoices").shuffle(invoices)
+        payments = list(books.payments)
+        base.fork("order/payments").shuffle(payments)
+        fx = [dict(r) for r in books.fx]
+        base.fork("order/fx").shuffle(fx)
+
+        for row in ledger:
+            row.row_id = f"L-{ids.draw('row')}"
+        documents = invoices + payments
+        base.fork("order/doc-ids").shuffle(documents)
+        for doc in documents:
+            doc.doc_id = f"DOC-{ids.draw('doc')}"
+        for inv in invoices:
+            if inv.alias_of is None:
+                prefix = "INV" if inv.kind == "invoice" else "CN"
+                inv.invoice_id = f"{prefix}-{ids.draw('invoice_number')}"
+        for inv in invoices:
+            if inv.alias_of is not None:
+                inv.invoice_id = inv.alias_of.invoice_id
+        for pay in payments:
+            pay.payment_id = f"PAY-{ids.draw('payment_number')}"
+
+        entity_map = {}
+        for party in books.customers:
+            entity_map[party.entity_id] = f"CUST-{ids.draw('entity')}"
+        for supplier in books.suppliers:
+            entity_map[supplier] = f"SUP-{ids.draw('entity')}"
+        return Layout(ledger, invoices, payments, fx=fx, entity_map=entity_map)
+
+
+def scheme_from_config(cfg: S.EpisodeConfig) -> IdScheme:
+    if cfg.id_scheme == "randomized":
+        return RandomizedIdScheme(cfg.id_salt)
+    return SequentialIdScheme()
 
 
 # --------------------------------------------------------------------------- #
@@ -1237,21 +1342,47 @@ def _build_policy(ctx: PeriodCtx, cfg: S.EpisodeConfig) -> dict:
     }
 
 
+def _id_registry(layout: Layout, books: Books) -> dict:
+    """public id -> internal record key (identical across id schemes of one history)."""
+    def entity(name: Optional[str]) -> Optional[str]:
+        return None if name is None else layout.entity_map.get(name, name)
+
+    invoice_numbers = {}
+    for inv in layout.invoices:
+        owner = inv.alias_of if inv.alias_of is not None else inv
+        invoice_numbers[inv.invoice_id] = f"invoice_number#{owner.order}"
+    entities = {entity(p.entity_id): f"entity#{p.entity_id}" for p in books.customers}
+    entities.update({entity(s): f"entity#{s}" for s in books.suppliers})
+    return {
+        "ledger_rows": {r.row_id: f"row#{r.seq}" for r in layout.ledger},
+        "documents": {**{i.doc_id: f"invoice#{i.order}" for i in layout.invoices},
+                      **{p.doc_id: f"payment#{p.order}" for p in layout.payments}},
+        "invoice_ids": invoice_numbers,
+        "payment_ids": {p.payment_id: f"payment_number#{p.order}" for p in layout.payments},
+        "entities": entities,
+    }
+
+
 def _finalize(seed: int, cfg: S.EpisodeConfig, episode_id: str, books: Books, issues: list,
-              plan: list, clean_checks: dict, scheme: IdScheme) -> Episode:
+              plan: list, clean_checks: dict, scheme: IdScheme,
+              id_rng: Optional[DetRng] = None) -> Episode:
     ctx = books.ctx
     rows, index = build_ledger(books)
-    layout = scheme.assign(books, rows)
+    layout = scheme.assign(books, rows, id_rng)
+    emap = layout.entity_map
+
+    def entity(name: Optional[str]) -> Optional[str]:
+        return None if name is None else emap.get(name, name)
 
     ledger = [{
         "row_id": r.row_id, "timestamp": _fmt(r.ts, r.offset), "account": r.account,
         "debit_minor": r.debit, "credit_minor": r.credit, "currency": r.currency,
-        "entity_id": r.entity_id,
+        "entity_id": entity(r.entity_id),
         "invoice_id": r.invoice.invoice_id if r.invoice is not None else None,
         "payment_id": r.payment.payment_id if r.payment is not None else None,
     } for r in layout.ledger]
     invoices = [{
-        "doc_id": inv.doc_id, "invoice_id": inv.invoice_id, "entity_id": inv.entity_id,
+        "doc_id": inv.doc_id, "invoice_id": inv.invoice_id, "entity_id": entity(inv.entity_id),
         "issued_at": _fmt(inv.issued_at, inv.display_offset),
         "due_at": _fmt(inv.due_at, inv.display_offset),
         "currency": inv.currency, "total_minor": inv.total_minor,
@@ -1266,7 +1397,7 @@ def _finalize(seed: int, cfg: S.EpisodeConfig, episode_id: str, books: Books, is
         "currency": p.currency, "amount_minor": p.amount_minor,
         "invoice_refs": [inv.invoice_id for inv, _ in p.allocations],
     } for p in layout.payments]
-    fx = [dict(r) for r in books.fx]
+    fx = [dict(r) for r in (layout.fx if layout.fx is not None else books.fx)]
 
     manifest = {
         "schema_version": S.SCHEMA_VERSION,
@@ -1314,16 +1445,19 @@ def _finalize(seed: int, cfg: S.EpisodeConfig, episode_id: str, books: Books, is
         "episode_id": episode_id,
         "seed": seed,
         "config": cfg.to_dict(),
+        "id_scheme": scheme.fingerprint(),
         "error_plan": list(plan),
         "company": {
-            "customers": [{"entity_id": p.entity_id, "currency": p.currency} for p in books.customers],
-            "suppliers": list(books.suppliers),
+            "customers": [{"entity_id": entity(p.entity_id), "currency": p.currency}
+                          for p in books.customers],
+            "suppliers": [entity(s) for s in books.suppliers],
         },
         "stories": [{"story": s["story"], "kind": s["kind"], "tags": s["tags"],
                      "records": _resolve(s["records"], index)} for s in books.story_log],
         "clean_books_checks": clean_checks,
         "mutations": mutations,
         "final_counts": manifest["counts"],
+        "id_registry": _id_registry(layout, books),
     }
     return Episode(episode_id, manifest, policy, ledger, invoices, payments, fx, truth, provenance)
 
@@ -1332,15 +1466,31 @@ def _finalize(seed: int, cfg: S.EpisodeConfig, episode_id: str, books: Books, is
 # Public entry point
 # --------------------------------------------------------------------------- #
 def generate_episode(seed: int, config: Any = None, *, id_scheme: Optional[IdScheme] = None) -> Episode:
-    """Generate one episode.  Same (seed, config, GENERATOR_VERSION) -> identical bytes."""
+    """Generate one episode.
+
+    Same (seed, config, GENERATOR_VERSION) -> identical bytes.
+
+    The *history* (records, amounts, errors) depends only on the seed and the
+    history fields of the config.  The id scheme - ``id_scheme`` argument, or
+    ``config.id_scheme``/``config.id_salt`` - only reorders rows and renames
+    ids.  ``manifest.episode_id`` is derived from the history material plus
+    the scheme fingerprint: the sequential scheme keeps the Stage 1 id, and
+    every randomized variant gets its own id, so an agent cannot recognise
+    two presentations of the same history by their episode id.
+    """
     S.validate_seed(seed)
     cfg = S.coerce_config(config)
     unknown = [t for t in cfg.error_types if t not in MUTATORS]
     if unknown:
         raise S.SchemaError(f"config.error_types: unsupported types {unknown}")
+    scheme = id_scheme if id_scheme is not None else scheme_from_config(cfg)
+    if not isinstance(scheme, IdScheme):
+        raise S.SchemaError("id_scheme: must be an IdScheme instance")
 
-    material = f"{S.GENERATOR_VERSION}|{seed}|{cfg.canonical_json()}"
-    episode_id = "EP-" + hashlib.sha256(material.encode("utf-8")).hexdigest()[:12].upper()
+    material = f"{S.GENERATOR_VERSION}|{seed}|{cfg.history_json()}"
+    fingerprint = scheme.fingerprint()
+    id_material = material if fingerprint == SequentialIdScheme.name else f"{material}|ids={fingerprint}"
+    episode_id = "EP-" + hashlib.sha256(id_material.encode("utf-8")).hexdigest()[:12].upper()
     root = DetRng(material)
     ctx = PeriodCtx.from_config(cfg)
     books = Books(config=cfg, ctx=ctx)
@@ -1364,4 +1514,4 @@ def generate_episode(seed: int, config: Any = None, *, id_scheme: Optional[IdSch
     _build_filler(books, root.fork("filler"))
     clean_checks["after_errors"] = _check_books(books, allow_mutations=True)
     return _finalize(seed, cfg, episode_id, books, issues, plan, clean_checks,
-                     id_scheme or SequentialIdScheme())
+                     scheme, root.fork("ids"))
