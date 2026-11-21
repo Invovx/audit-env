@@ -453,3 +453,19 @@ def test_block4_paired_checks(pair, tmp_path):
     assert t1 == t1b and s1 == s1b                    # exact replay on the original
     assert s1 == s2                                   # same TP/FP/FN/P/R/F1/return after the transform
     assert s1["f1"] == 1.0
+
+
+def test_flat_episode_dir_layout_loads_like_public_private(dirs, tmp_path):
+    """Jury may put every file directly in episode_dir (no public/ private/)."""
+    flat = tmp_path / "flat"
+    flat.mkdir()
+    for sub in ("public", "private"):
+        for f in (Path(dirs["E"]) / sub).iterdir():
+            shutil.copy(f, flat / f.name)
+    env_a, env_b = J.make_env(), J.make_env()
+    assert closed(env_a, dirs["E"]) == closed(env_b, flat)
+    action = act("list_records", table="ledger", cursor=None, limit=20)
+    assert env_a.step(action) == env_b.step(action)
+    f = oracle_findings(dirs["E"])
+    assert J.score_episode(str(flat), f, 3) == J.score_episode(str(dirs["E"]), f, 3)
+    assert J.score_episode(str(flat), f, 3)["tp"] == 1
