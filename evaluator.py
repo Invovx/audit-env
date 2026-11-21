@@ -129,7 +129,9 @@ class Evaluator:
                 entry["expected_amount_minor"], entry["currency"],
                 tuple(frozenset(ev) for ev in entry["valid_evidence_sets"])))
         self._episode_id = episode_id
-        self._refs = tuple(refs)
+        # reference errors ordered by issue_id (published tie-break rule); counts never depend on it
+        order = sorted(range(len(refs)), key=lambda i: truth[i]["issue_id"])
+        self._refs = tuple(refs[i] for i in order)
         self._tolerance = amount_tolerance_minor
         self._public_ids = frozenset(public_ids) if public_ids is not None else None
         self._final: Optional[EvalResult] = None

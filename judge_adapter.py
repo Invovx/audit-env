@@ -180,7 +180,7 @@ def score_episode(episode_dir: str, findings: dict, inspection_steps: int) -> di
         payload = findings["findings"]           # accept the submit args wrapper too
     evaluator = Evaluator(data["manifest"]["episode_id"], truth, episode_io.tolerance(data),
                           episode_io.public_ids(data))
-    result = evaluator.evaluate(payload, inspection_steps)
+    result = evaluator.finalize(payload, inspection_steps)      # finalize() logs invalid structure
     if not result.valid_submission:
         return {"tp": None, "fp": None, "fn": None, "precision": None, "recall": None,
                 "f1": None, "return": -1.0}

@@ -726,7 +726,9 @@ def test_limits_are_inclusive_and_valid_at_the_boundary():
 
 def test_matching_rules_tp_conditions():
     ep = generate_episode(2, DIRTY)
-    ev = Evaluator(ep.episode_id, ep.truth, ep.policy["amount_tolerance_minor"])
+    pub_ids = ({r["row_id"] for r in ep.ledger} | {d["doc_id"] for d in ep.invoices + ep.payments}
+               | {S.fx_record_id(r) for r in ep.fx})
+    ev = Evaluator(ep.episode_id, ep.truth, ep.policy["amount_tolerance_minor"], pub_ids)
     tol = ep.policy["amount_tolerance_minor"]
     t0 = ep.truth[0]
     other_cur = "USD" if t0["currency"] != "USD" else "EUR"
@@ -754,7 +756,9 @@ def test_matching_rules_tp_conditions():
         assert tp({**base, "evidence_ids": sets[0][:-1]}) == 0
     assert tp({**base, "evidence_ids": []}) == 0
     assert tp({**base, "evidence_ids": ["L999999"]}) == 0
-    assert tp({**base, "evidence_ids": sets[0] + ["NOISE-1", "NOISE-2"]}) == 1
+    extra = next(r["row_id"] for r in ep.ledger if r["row_id"] not in sets[0])
+    assert tp({**base, "evidence_ids": sets[0] + [extra]}) == 1             # M03: extra existing id
+    assert tp({**base, "evidence_ids": sets[0] + ["NOISE-1", "NOISE-2"]}) == 0   # M04: nonexistent id
     for alt in sets:                                         # every listed set is sufficient alone
         assert tp({**base, "evidence_ids": list(alt)}) == 1
 

@@ -10,7 +10,7 @@
           "f1": 0.0,
           "reward": -1.0,
           "inspection_steps": 1.5,
-          "seconds": 0.0273,
+          "seconds": 0.0259,
           "episodes": 10
         },
         "episodes": [
@@ -27,7 +27,7 @@
             "truncated": false,
             "episode_id": "EP-B6965FAE6A51",
             "clean": true,
-            "seconds": 0.0126
+            "seconds": 0.0191
           },
           {
             "reward": -1.0,
@@ -42,7 +42,7 @@
             "truncated": false,
             "episode_id": "EP-69C86D077E2C",
             "clean": true,
-            "seconds": 0.0307
+            "seconds": 0.0288
           },
           {
             "reward": -1.0,
@@ -57,7 +57,7 @@
             "truncated": false,
             "episode_id": "EP-F9B60E6DF3CF",
             "clean": false,
-            "seconds": 0.0204
+            "seconds": 0.0118
           },
           {
             "reward": -1.0,
@@ -72,7 +72,7 @@
             "truncated": false,
             "episode_id": "EP-2C622A23F2B8",
             "clean": false,
-            "seconds": 0.0198
+            "seconds": 0.0186
           },
           {
             "reward": -1.0,
@@ -87,7 +87,7 @@
             "truncated": false,
             "episode_id": "EP-8A80A4D02823",
             "clean": false,
-            "seconds": 0.0408
+            "seconds": 0.032
           },
           {
             "reward": -1.0,
@@ -102,7 +102,7 @@
             "truncated": false,
             "episode_id": "EP-BBFA0B48E16A",
             "clean": false,
-            "seconds": 0.0386
+            "seconds": 0.0396
           },
           {
             "reward": -1.0,
@@ -117,7 +117,7 @@
             "truncated": false,
             "episode_id": "EP-069C39B5A601",
             "clean": false,
-            "seconds": 0.0604
+            "seconds": 0.0634
           },
           {
             "reward": -1.0,
@@ -132,7 +132,7 @@
             "truncated": false,
             "episode_id": "EP-9587B28E9875",
             "clean": false,
-            "seconds": 0.0117
+            "seconds": 0.0103
           },
           {
             "reward": -1.0,
@@ -147,7 +147,7 @@
             "truncated": false,
             "episode_id": "EP-E58367EC703B",
             "clean": false,
-            "seconds": 0.0214
+            "seconds": 0.02
           },
           {
             "reward": -1.0,
@@ -162,7 +162,7 @@
             "truncated": false,
             "episode_id": "EP-978870A3C9D9",
             "clean": false,
-            "seconds": 0.0169
+            "seconds": 0.0154
           }
         ]
       },
@@ -173,7 +173,7 @@
           "f1": 1.0,
           "reward": 1.0,
           "inspection_steps": 0.0,
-          "seconds": 0.0249,
+          "seconds": 0.0247,
           "episodes": 10
         },
         "episodes": [
@@ -190,7 +190,7 @@
             "truncated": false,
             "episode_id": "EP-B6965FAE6A51",
             "clean": true,
-            "seconds": 0.0114
+            "seconds": 0.0204
           },
           {
             "reward": 1.0,
@@ -205,7 +205,7 @@
             "truncated": false,
             "episode_id": "EP-69C86D077E2C",
             "clean": true,
-            "seconds": 0.0279
+            "seconds": 0.0263
           },
           {
             "reward": 1.0,
@@ -220,7 +220,7 @@
             "truncated": false,
             "episode_id": "EP-F9B60E6DF3CF",
             "clean": false,
-            "seconds": 0.0121
+            "seconds": 0.0123
           },
           {
             "reward": 1.0,
@@ -235,7 +235,7 @@
             "truncated": false,
             "episode_id": "EP-2C622A23F2B8",
             "clean": false,
-            "seconds": 0.0195
+            "seconds": 0.0185
           },
           {
             "reward": 1.0,
@@ -250,7 +250,7 @@
             "truncated": false,
             "episode_id": "EP-8A80A4D02823",
             "clean": false,
-            "seconds": 0.0275
+            "seconds": 0.0242
           },
           {
             "reward": 1.0,
@@ -265,7 +265,7 @@
             "truncated": false,
             "episode_id": "EP-BBFA0B48E16A",
             "clean": false,
-            "seconds": 0.0366
+            "seconds": 0.0355
           },
           {
             "reward": 1.0,
@@ -280,7 +280,7 @@
             "truncated": false,
             "episode_id": "EP-069C39B5A601",
             "clean": false,
-            "seconds": 0.0663
+            "seconds": 0.0653
           },
           {
             "reward": 1.0,
@@ -295,7 +295,7 @@
             "truncated": false,
             "episode_id": "EP-9587B28E9875",
             "clean": false,
-            "seconds": 0.0107
+            "seconds": 0.0099
           },
           {
             "reward": 1.0,
@@ -310,7 +310,7 @@
             "truncated": false,
             "episode_id": "EP-E58367EC703B",
             "clean": false,
-            "seconds": 0.0214
+            "seconds": 0.019
           },
           {
             "reward": 1.0,
@@ -325,7 +325,7 @@
             "truncated": false,
             "episode_id": "EP-978870A3C9D9",
             "clean": false,
-            "seconds": 0.016
+            "seconds": 0.0154
           }
         ]
       },
@@ -336,7 +336,7 @@
           "f1": 0.0,
           "reward": -1.0,
           "inspection_steps": 22.5,
-          "seconds": 0.0266,
+          "seconds": 0.0274,
           "episodes": 10
         },
         "episodes": [
@@ -353,7 +353,7 @@
             "truncated": false,
             "episode_id": "EP-B6965FAE6A51",
             "clean": true,
-            "seconds": 0.0147
+            "seconds": 0.0199
           },
           {
             "reward": -1.0,
@@ -368,7 +368,7 @@
             "truncated": false,
             "episode_id": "EP-69C86D077E2C",
             "clean": true,
-            "seconds": 0.0281
+            "seconds": 0.051
           },
           {
             "reward": -1.0,
@@ -383,7 +383,7 @@
             "truncated": false,
             "episode_id": "EP-F9B60E6DF3CF",
             "clean": false,
-            "seconds": 0.0156
+            "seconds": 0.013
           },
           {
             "reward": -1.0,
@@ -413,7 +413,7 @@
             "truncated": false,
             "episode_id": "EP-8A80A4D02823",
             "clean": false,
-            "seconds": 0.0259
+            "seconds": 0.0236
           },
           {
             "reward": -1.0,
@@ -428,7 +428,7 @@
             "truncated": false,
             "episode_id": "EP-BBFA0B48E16A",
             "clean": false,
-            "seconds": 0.0456
+            "seconds": 0.0393
           },
           {
             "reward": -1.0,
@@ -443,7 +443,7 @@
             "truncated": false,
             "episode_id": "EP-069C39B5A601",
             "clean": false,
-            "seconds": 0.0642
+            "seconds": 0.0552
           },
           {
             "reward": -1.0,
@@ -458,7 +458,7 @@
             "truncated": false,
             "episode_id": "EP-9587B28E9875",
             "clean": false,
-            "seconds": 0.0116
+            "seconds": 0.0115
           },
           {
             "reward": -1.0,
@@ -473,7 +473,7 @@
             "truncated": false,
             "episode_id": "EP-E58367EC703B",
             "clean": false,
-            "seconds": 0.0218
+            "seconds": 0.0219
           },
           {
             "reward": -1.0,
@@ -488,7 +488,7 @@
             "truncated": false,
             "episode_id": "EP-978870A3C9D9",
             "clean": false,
-            "seconds": 0.0176
+            "seconds": 0.0183
           }
         ]
       },
@@ -499,7 +499,7 @@
           "f1": 0.4449,
           "reward": -0.1407,
           "inspection_steps": 18.4,
-          "seconds": 0.0344,
+          "seconds": 0.0282,
           "episodes": 10
         },
         "episodes": [
@@ -516,7 +516,7 @@
             "truncated": false,
             "episode_id": "EP-B6965FAE6A51",
             "clean": true,
-            "seconds": 0.0138
+            "seconds": 0.016
           },
           {
             "reward": -1.0,
@@ -531,7 +531,7 @@
             "truncated": false,
             "episode_id": "EP-69C86D077E2C",
             "clean": true,
-            "seconds": 0.0385
+            "seconds": 0.0321
           },
           {
             "reward": 0.31333333333333324,
@@ -546,7 +546,7 @@
             "truncated": false,
             "episode_id": "EP-F9B60E6DF3CF",
             "clean": false,
-            "seconds": 0.0229
+            "seconds": 0.0142
           },
           {
             "reward": 0.42654545454545456,
@@ -576,7 +576,7 @@
             "truncated": false,
             "episode_id": "EP-8A80A4D02823",
             "clean": false,
-            "seconds": 0.0335
+            "seconds": 0.0266
           },
           {
             "reward": -0.16711111111111115,
@@ -591,7 +591,7 @@
             "truncated": false,
             "episode_id": "EP-BBFA0B48E16A",
             "clean": false,
-            "seconds": 0.0534
+            "seconds": 0.0486
           },
           {
             "reward": 0.0528571428571428,
@@ -606,7 +606,7 @@
             "truncated": false,
             "episode_id": "EP-069C39B5A601",
             "clean": false,
-            "seconds": 0.1036
+            "seconds": 0.0685
           },
           {
             "reward": -0.3493333333333334,
@@ -621,7 +621,7 @@
             "truncated": false,
             "episode_id": "EP-9587B28E9875",
             "clean": false,
-            "seconds": 0.0131
+            "seconds": 0.0115
           },
           {
             "reward": -0.23199999999999996,
@@ -636,7 +636,7 @@
             "truncated": false,
             "episode_id": "EP-E58367EC703B",
             "clean": false,
-            "seconds": 0.0248
+            "seconds": 0.0231
           },
           {
             "reward": 0.476,
@@ -651,7 +651,7 @@
             "truncated": false,
             "episode_id": "EP-978870A3C9D9",
             "clean": false,
-            "seconds": 0.0189
+            "seconds": 0.0199
           }
         ]
       }
@@ -664,7 +664,7 @@
           "f1": 0.0,
           "reward": -1.0,
           "inspection_steps": 1.5,
-          "seconds": 0.0243,
+          "seconds": 0.0228,
           "episodes": 10
         },
         "episodes": [
@@ -681,7 +681,7 @@
             "truncated": false,
             "episode_id": "EP-D08CEA3A1A95",
             "clean": true,
-            "seconds": 0.0155
+            "seconds": 0.0123
           },
           {
             "reward": -1.0,
@@ -696,7 +696,7 @@
             "truncated": false,
             "episode_id": "EP-2C0DF0075469",
             "clean": true,
-            "seconds": 0.0318
+            "seconds": 0.0283
           },
           {
             "reward": -1.0,
@@ -711,7 +711,7 @@
             "truncated": false,
             "episode_id": "EP-6653EDA661DA",
             "clean": false,
-            "seconds": 0.0123
+            "seconds": 0.0132
           },
           {
             "reward": -1.0,
@@ -726,7 +726,7 @@
             "truncated": false,
             "episode_id": "EP-78A3FB8998B1",
             "clean": false,
-            "seconds": 0.019
+            "seconds": 0.0184
           },
           {
             "reward": -1.0,
@@ -741,7 +741,7 @@
             "truncated": false,
             "episode_id": "EP-A050FE9576BB",
             "clean": false,
-            "seconds": 0.024
+            "seconds": 0.0235
           },
           {
             "reward": -1.0,
@@ -756,7 +756,7 @@
             "truncated": false,
             "episode_id": "EP-4FFB25D6CCB5",
             "clean": false,
-            "seconds": 0.0396
+            "seconds": 0.0356
           },
           {
             "reward": -1.0,
@@ -771,7 +771,7 @@
             "truncated": false,
             "episode_id": "EP-6C150FC25622",
             "clean": false,
-            "seconds": 0.0521
+            "seconds": 0.0503
           },
           {
             "reward": -1.0,
@@ -801,7 +801,7 @@
             "truncated": false,
             "episode_id": "EP-139571716752",
             "clean": false,
-            "seconds": 0.0214
+            "seconds": 0.02
           },
           {
             "reward": -1.0,
@@ -816,7 +816,7 @@
             "truncated": false,
             "episode_id": "EP-AACAC6C186B3",
             "clean": false,
-            "seconds": 0.0175
+            "seconds": 0.0162
           }
         ]
       },
@@ -827,7 +827,7 @@
           "f1": 1.0,
           "reward": 1.0,
           "inspection_steps": 0.0,
-          "seconds": 0.0232,
+          "seconds": 0.0223,
           "episodes": 10
         },
         "episodes": [
@@ -859,7 +859,7 @@
             "truncated": false,
             "episode_id": "EP-2C0DF0075469",
             "clean": true,
-            "seconds": 0.028
+            "seconds": 0.0266
           },
           {
             "reward": 1.0,
@@ -874,7 +874,7 @@
             "truncated": false,
             "episode_id": "EP-6653EDA661DA",
             "clean": false,
-            "seconds": 0.0115
+            "seconds": 0.0119
           },
           {
             "reward": 1.0,
@@ -889,7 +889,7 @@
             "truncated": false,
             "episode_id": "EP-78A3FB8998B1",
             "clean": false,
-            "seconds": 0.0195
+            "seconds": 0.0186
           },
           {
             "reward": 1.0,
@@ -904,7 +904,7 @@
             "truncated": false,
             "episode_id": "EP-A050FE9576BB",
             "clean": false,
-            "seconds": 0.0236
+            "seconds": 0.0223
           },
           {
             "reward": 1.0,
@@ -919,7 +919,7 @@
             "truncated": false,
             "episode_id": "EP-4FFB25D6CCB5",
             "clean": false,
-            "seconds": 0.0357
+            "seconds": 0.0338
           },
           {
             "reward": 1.0,
@@ -934,7 +934,7 @@
             "truncated": false,
             "episode_id": "EP-6C150FC25622",
             "clean": false,
-            "seconds": 0.0506
+            "seconds": 0.0493
           },
           {
             "reward": 1.0,
@@ -949,7 +949,7 @@
             "truncated": false,
             "episode_id": "EP-60EDA0D9BC94",
             "clean": false,
-            "seconds": 0.01
+            "seconds": 0.0098
           },
           {
             "reward": 1.0,
@@ -964,7 +964,7 @@
             "truncated": false,
             "episode_id": "EP-139571716752",
             "clean": false,
-            "seconds": 0.0229
+            "seconds": 0.0198
           },
           {
             "reward": 1.0,
@@ -979,7 +979,7 @@
             "truncated": false,
             "episode_id": "EP-AACAC6C186B3",
             "clean": false,
-            "seconds": 0.0178
+            "seconds": 0.0189
           }
         ]
       },
@@ -990,7 +990,7 @@
           "f1": 0.2,
           "reward": -0.6052,
           "inspection_steps": 12.9,
-          "seconds": 0.0245,
+          "seconds": 0.0246,
           "episodes": 10
         },
         "episodes": [
@@ -1007,7 +1007,7 @@
             "truncated": false,
             "episode_id": "EP-D08CEA3A1A95",
             "clean": true,
-            "seconds": 0.0137
+            "seconds": 0.0172
           },
           {
             "reward": 0.968,
@@ -1022,7 +1022,7 @@
             "truncated": false,
             "episode_id": "EP-2C0DF0075469",
             "clean": true,
-            "seconds": 0.0373
+            "seconds": 0.0275
           },
           {
             "reward": -1.0,
@@ -1037,7 +1037,7 @@
             "truncated": false,
             "episode_id": "EP-6653EDA661DA",
             "clean": false,
-            "seconds": 0.0127
+            "seconds": 0.0124
           },
           {
             "reward": -1.0,
@@ -1052,7 +1052,7 @@
             "truncated": false,
             "episode_id": "EP-78A3FB8998B1",
             "clean": false,
-            "seconds": 0.0195
+            "seconds": 0.0217
           },
           {
             "reward": -1.0,
@@ -1067,7 +1067,7 @@
             "truncated": false,
             "episode_id": "EP-A050FE9576BB",
             "clean": false,
-            "seconds": 0.0239
+            "seconds": 0.0243
           },
           {
             "reward": -1.0,
@@ -1082,7 +1082,7 @@
             "truncated": false,
             "episode_id": "EP-4FFB25D6CCB5",
             "clean": false,
-            "seconds": 0.0361
+            "seconds": 0.0355
           },
           {
             "reward": -1.0,
@@ -1097,7 +1097,7 @@
             "truncated": false,
             "episode_id": "EP-6C150FC25622",
             "clean": false,
-            "seconds": 0.0518
+            "seconds": 0.0507
           },
           {
             "reward": -1.0,
@@ -1112,7 +1112,7 @@
             "truncated": false,
             "episode_id": "EP-60EDA0D9BC94",
             "clean": false,
-            "seconds": 0.0106
+            "seconds": 0.0098
           },
           {
             "reward": -1.0,
@@ -1142,7 +1142,7 @@
             "truncated": false,
             "episode_id": "EP-AACAC6C186B3",
             "clean": false,
-            "seconds": 0.0177
+            "seconds": 0.0249
           }
         ]
       },
@@ -1153,7 +1153,7 @@
           "f1": 0.5414,
           "reward": 0.0523,
           "inspection_steps": 18.3,
-          "seconds": 0.0298,
+          "seconds": 0.0294,
           "episodes": 10
         },
         "episodes": [
@@ -1170,7 +1170,7 @@
             "truncated": false,
             "episode_id": "EP-D08CEA3A1A95",
             "clean": true,
-            "seconds": 0.0137
+            "seconds": 0.0163
           },
           {
             "reward": -1.0,
@@ -1185,7 +1185,7 @@
             "truncated": false,
             "episode_id": "EP-2C0DF0075469",
             "clean": true,
-            "seconds": 0.0356
+            "seconds": 0.0325
           },
           {
             "reward": 0.5800000000000001,
@@ -1200,7 +1200,7 @@
             "truncated": false,
             "episode_id": "EP-6653EDA661DA",
             "clean": false,
-            "seconds": 0.0143
+            "seconds": 0.015
           },
           {
             "reward": 0.06290909090909083,
@@ -1215,7 +1215,7 @@
             "truncated": false,
             "episode_id": "EP-78A3FB8998B1",
             "clean": false,
-            "seconds": 0.0211
+            "seconds": 0.0214
           },
           {
             "reward": 0.07311111111111115,
@@ -1230,7 +1230,7 @@
             "truncated": false,
             "episode_id": "EP-A050FE9576BB",
             "clean": false,
-            "seconds": 0.0272
+            "seconds": 0.027
           },
           {
             "reward": 0.05511111111111116,
@@ -1245,7 +1245,7 @@
             "truncated": false,
             "episode_id": "EP-4FFB25D6CCB5",
             "clean": false,
-            "seconds": 0.0573
+            "seconds": 0.0506
           },
           {
             "reward": -0.09,
@@ -1260,7 +1260,7 @@
             "truncated": false,
             "episode_id": "EP-6C150FC25622",
             "clean": false,
-            "seconds": 0.0617
+            "seconds": 0.0596
           },
           {
             "reward": 0.984,
@@ -1275,7 +1275,7 @@
             "truncated": false,
             "episode_id": "EP-60EDA0D9BC94",
             "clean": false,
-            "seconds": 0.0112
+            "seconds": 0.0115
           },
           {
             "reward": 0.16799999999999995,
@@ -1290,7 +1290,7 @@
             "truncated": false,
             "episode_id": "EP-139571716752",
             "clean": false,
-            "seconds": 0.0375
+            "seconds": 0.0344
           },
           {
             "reward": 0.6902857142857142,
@@ -1305,7 +1305,7 @@
             "truncated": false,
             "episode_id": "EP-AACAC6C186B3",
             "clean": false,
-            "seconds": 0.0189
+            "seconds": 0.0261
           }
         ]
       }
@@ -1318,7 +1318,7 @@
       "error": null,
       "reward": 0.982,
       "leak": false,
-      "seconds": 0.043
+      "seconds": 0.051
     },
     {
       "episode_id": "EP-D08CEA3A1A95",
@@ -1326,7 +1326,7 @@
       "error": null,
       "reward": -1.0,
       "leak": false,
-      "seconds": 0.039
+      "seconds": 0.041
     },
     {
       "episode_id": "EP-2C0DF0075469",
@@ -1334,7 +1334,7 @@
       "error": null,
       "reward": 0.994,
       "leak": false,
-      "seconds": 0.038
+      "seconds": 0.047
     },
     {
       "episode_id": "EP-2C0DF0075469",
@@ -1342,7 +1342,7 @@
       "error": null,
       "reward": -1.0,
       "leak": false,
-      "seconds": 0.041
+      "seconds": 0.054
     },
     {
       "episode_id": "EP-6653EDA661DA",
@@ -1350,7 +1350,7 @@
       "error": null,
       "reward": -1.0,
       "leak": false,
-      "seconds": 0.044
+      "seconds": 0.049
     },
     {
       "episode_id": "EP-6653EDA661DA",
@@ -1358,7 +1358,7 @@
       "error": null,
       "reward": -1.0,
       "leak": false,
-      "seconds": 0.04
+      "seconds": 0.042
     }
   ]
 }
