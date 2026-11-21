@@ -26,7 +26,7 @@ from typing import Any, Iterable, Mapping, Optional, Sequence
 # Versions, limits, vocabularies
 # --------------------------------------------------------------------------- #
 SCHEMA_VERSION = "1.0"
-GENERATOR_VERSION = "1.1.0"
+GENERATOR_VERSION = "1.2.0"
 
 MAX_STEPS = 100
 MAX_LIST_LIMIT = 50
@@ -43,8 +43,12 @@ PRESENTATION_FIELDS = ("id_scheme", "id_salt")
 ISSUE_DUPLICATE_INVOICE = "duplicate_invoice"
 ISSUE_PERIOD_CUTOFF = "period_cutoff_error"
 ISSUE_PARTIAL_PAYMENT = "partial_payment_allocation"
+ISSUE_FX_RATE = "fx_rate_error"
 STAGE1_ISSUE_TYPES = (ISSUE_DUPLICATE_INVOICE, ISSUE_PERIOD_CUTOFF)
-ALL_ISSUE_TYPES = (ISSUE_DUPLICATE_INVOICE, ISSUE_PERIOD_CUTOFF, ISSUE_PARTIAL_PAYMENT)
+ALL_ISSUE_TYPES = (ISSUE_DUPLICATE_INVOICE, ISSUE_PERIOD_CUTOFF, ISSUE_PARTIAL_PAYMENT,
+                   ISSUE_FX_RATE)
+# interacting-error scenarios: each adds two linked issues to the episode
+INTERACTION_SCENARIOS = ("partial_fx_boundary", "cutoff_fx")
 
 # currency -> number of minor-unit digits (explicitly published in manifest.json)
 SUPPORTED_CURRENCIES = {"KZT": 2, "USD": 2, "EUR": 2}
@@ -239,6 +243,7 @@ class EpisodeConfig:
     period_days: int = 90
     amount_tolerance_minor: int = 100
     include_distractors: bool = True
+    interactions: tuple = ()
     # Presentation-only fields: they change ids and row order, never the history.
     id_scheme: str = "sequential"
     id_salt: int = 0
@@ -263,13 +268,24 @@ class EpisodeConfig:
                  "config.amount_tolerance_minor: must be in 0..10000")
         _require(isinstance(self.include_distractors, bool),
                  "config.include_distractors: must be a bool")
-        for name in ("error_types", "foreign_currencies"):
+        for name in ("error_types", "foreign_currencies", "interactions"):
             value = getattr(self, name)
             _require(isinstance(value, (list, tuple)) and all(isinstance(v, str) for v in value),
                      f"config.{name}: must be a list of strings")
             object.__setattr__(self, name, tuple(value))
         _require(len(set(self.error_types)) == len(self.error_types),
                  "config.error_types: must not repeat")
+        _require(all(x in INTERACTION_SCENARIOS for x in self.interactions),
+                 f"config.interactions: must be from {list(INTERACTION_SCENARIOS)}")
+        _require(len(set(self.interactions)) == len(self.interactions),
+                 "config.interactions: must not repeat")
+        total = self.n_errors + 2 * len(self.interactions)
+        _require(total <= 12, "config: n_errors + 2 * len(interactions) must be <= 12")
+        _require(self.n_documents >= 4 * total,
+                 "config: n_documents must be >= 4 * (n_errors + 2 * len(interactions))")
+        needs_fx = bool(self.interactions) or (self.n_errors > 0 and ISSUE_FX_RATE in self.error_types)
+        _require(not needs_fx or len(self.foreign_currencies) > 0,
+                 "config.foreign_currencies: required for fx_rate_error and interactions")
         _require(self.n_errors == 0 or len(self.error_types) > 0,
                  "config.error_types: must not be empty when n_errors > 0")
         _require_currency(self.base_currency, "config.base_currency")

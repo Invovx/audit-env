@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.0",
+  "episode_id": "EP-F783F050284D",
+  "base_currency": "USD",
+  "currency_minor_units": {
+    "USD": 2,
+    "EUR": 2,
+    "KZT": 2
+  },
+  "period_start": "2026-01-01T00:00:00+05:00",
+  "period_end": "2026-03-31T23:59:59+05:00",
+  "timezone": "+05:00",
+  "counts": {
+    "ledger_rows": 700,
+    "invoices": 47,
+    "payments": 33,
+    "documents": 80,
+    "fx_rates": 148
+  },
+  "rounding_rule": "ROUND_HALF_UP"
+}

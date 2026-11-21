@@ -1,0 +1,13 @@
+{
+  "config_version": "1.2",
+  "seed": 2004,
+  "config": {
+    "n_ledger_rows": 800,
+    "n_documents": 90,
+    "n_errors": 6,
+    "interactions": [
+      "partial_fx_boundary",
+      "cutoff_fx"
+    ]
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "config_version": "1.2",
+  "seed": 1003,
+  "config": {
+    "n_ledger_rows": 600,
+    "n_documents": 60,
+    "n_errors": 4,
+    "id_scheme": "randomized",
+    "id_salt": 7022,
+    "interactions": [
+      "cutoff_fx"
+    ]
+  }
+}

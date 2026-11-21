@@ -52,7 +52,12 @@ TASK_DESCRIPTION = (
     "(2100). affected_ids = [payment doc_id, invoice doc_id]; claimed_amount_minor = the "
     "unapplied amount in the payment currency; currency = payment currency; evidence_ids = the "
     "payment doc_id plus the ledger row_id that shows the unapplied or short-applied amount. "
-    "A legitimate overpayment (payment larger than the invoice) also leaves cash in 2100."
+    "A legitimate overpayment (payment larger than the invoice) also leaves cash in 2100.\n"
+    "- fx_rate_error: a foreign-currency invoice (or payment) was translated into the base "
+    "currency at the rate of the wrong date. affected_ids = [doc_id of that document]; "
+    "claimed_amount_minor = |posted base amount - correct base amount|; currency = base currency; "
+    "evidence_ids = the doc_id, the ledger row_id of the mistranslated posting and the fx_id of "
+    "the rate the policy requires."
 )
 
 _MAX_MESSAGE = 200

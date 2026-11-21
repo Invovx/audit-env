@@ -73,7 +73,7 @@ def _canonical_truth(episode) -> list:
             entry["expected_amount_minor"],
             entry["currency"],
             tuple(sorted(lookup[i] for i in entry["affected_ids"])),
-            tuple(sorted(tuple(sorted(lookup[i] for i in ev)) for ev in entry["valid_evidence_sets"])),
+            tuple(sorted(tuple(sorted(lookup.get(i, i) for i in ev)) for ev in entry["valid_evidence_sets"])),  # fx ids are content-derived
         ))
     return sorted(out)
 

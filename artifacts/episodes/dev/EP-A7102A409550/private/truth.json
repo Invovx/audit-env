@@ -1,0 +1,82 @@
+[
+  {
+    "issue_id": "ISS-0001",
+    "type": "fx_rate_error",
+    "affected_ids": [
+      "DOC-e3257e"
+    ],
+    "expected_amount_minor": 433664,
+    "currency": "KZT",
+    "valid_evidence_sets": [
+      [
+        "DOC-e3257e",
+        "FX-2026-07-03-USD-KZT",
+        "L-eb6707"
+      ],
+      [
+        "DOC-e3257e",
+        "FX-2026-07-03-USD-KZT",
+        "L-efafd3"
+      ]
+    ]
+  },
+  {
+    "issue_id": "ISS-0002",
+    "type": "partial_payment_allocation",
+    "affected_ids": [
+      "DOC-b11083",
+      "DOC-fe7936"
+    ],
+    "expected_amount_minor": 975000000,
+    "currency": "KZT",
+    "valid_evidence_sets": [
+      [
+        "DOC-b11083",
+        "L-ca9cc2"
+      ]
+    ]
+  },
+  {
+    "issue_id": "ISS-0003",
+    "type": "period_cutoff_error",
+    "affected_ids": [
+      "DOC-3992c1"
+    ],
+    "expected_amount_minor": 108000,
+    "currency": "EUR",
+    "valid_evidence_sets": [
+      [
+        "DOC-3992c1",
+        "L-451c85"
+      ],
+      [
+        "DOC-3992c1",
+        "L-cc1e7f"
+      ]
+    ]
+  },
+  {
+    "issue_id": "ISS-0004",
+    "type": "duplicate_invoice",
+    "affected_ids": [
+      "DOC-0a1a6e",
+      "DOC-ee70eb"
+    ],
+    "expected_amount_minor": 5000000,
+    "currency": "KZT",
+    "valid_evidence_sets": [
+      [
+        "DOC-0a1a6e",
+        "DOC-ee70eb"
+      ],
+      [
+        "L-089d39",
+        "L-22db57"
+      ],
+      [
+        "L-d42e8d",
+        "L-e29725"
+      ]
+    ]
+  }
+]

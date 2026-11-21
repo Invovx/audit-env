@@ -1,5 +1,5 @@
 {
-  "config_version": "1.1",
+  "config_version": "1.2",
   "split": "dev",
   "episodes": [
     {
@@ -35,7 +35,10 @@
         "n_documents": 60,
         "n_errors": 4,
         "id_scheme": "randomized",
-        "id_salt": 14022
+        "id_salt": 14022,
+        "interactions": [
+          "cutoff_fx"
+        ]
       }
     },
     {
@@ -43,7 +46,11 @@
       "config": {
         "n_ledger_rows": 800,
         "n_documents": 90,
-        "n_errors": 6
+        "n_errors": 6,
+        "interactions": [
+          "partial_fx_boundary",
+          "cutoff_fx"
+        ]
       }
     },
     {
@@ -53,7 +60,10 @@
         "n_documents": 140,
         "n_errors": 8,
         "id_scheme": "randomized",
-        "id_salt": 14036
+        "id_salt": 14036,
+        "interactions": [
+          "partial_fx_boundary"
+        ]
       }
     },
     {
@@ -61,7 +71,11 @@
       "config": {
         "n_ledger_rows": 2000,
         "n_documents": 200,
-        "n_errors": 12
+        "n_errors": 8,
+        "interactions": [
+          "partial_fx_boundary",
+          "cutoff_fx"
+        ]
       }
     },
     {

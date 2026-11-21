@@ -1,0 +1,118 @@
+[
+  {
+    "issue_id": "ISS-0001",
+    "type": "partial_payment_allocation",
+    "affected_ids": [
+      "DOC-1a8da1",
+      "DOC-32da65"
+    ],
+    "expected_amount_minor": 56170,
+    "currency": "EUR",
+    "valid_evidence_sets": [
+      [
+        "DOC-1a8da1",
+        "L-52ddb4"
+      ],
+      [
+        "DOC-1a8da1",
+        "L-53ba9a"
+      ]
+    ]
+  },
+  {
+    "issue_id": "ISS-0002",
+    "type": "duplicate_invoice",
+    "affected_ids": [
+      "DOC-70da86",
+      "DOC-ca4f46"
+    ],
+    "expected_amount_minor": 25000000,
+    "currency": "KZT",
+    "valid_evidence_sets": [
+      [
+        "DOC-70da86",
+        "DOC-ca4f46"
+      ]
+    ]
+  },
+  {
+    "issue_id": "ISS-0003",
+    "type": "period_cutoff_error",
+    "affected_ids": [
+      "DOC-e81dd7"
+    ],
+    "expected_amount_minor": 139000,
+    "currency": "EUR",
+    "valid_evidence_sets": [
+      [
+        "DOC-e81dd7",
+        "L-6ef8cf"
+      ],
+      [
+        "DOC-e81dd7",
+        "L-f17540"
+      ]
+    ]
+  },
+  {
+    "issue_id": "ISS-0004",
+    "type": "fx_rate_error",
+    "affected_ids": [
+      "DOC-1ea128"
+    ],
+    "expected_amount_minor": 978244,
+    "currency": "KZT",
+    "valid_evidence_sets": [
+      [
+        "DOC-1ea128",
+        "FX-2026-03-04-EUR-KZT",
+        "L-14c422"
+      ],
+      [
+        "DOC-1ea128",
+        "FX-2026-03-04-EUR-KZT",
+        "L-b317ab"
+      ]
+    ]
+  },
+  {
+    "issue_id": "ISS-0005",
+    "type": "period_cutoff_error",
+    "affected_ids": [
+      "DOC-9d4449"
+    ],
+    "expected_amount_minor": 536000,
+    "currency": "EUR",
+    "valid_evidence_sets": [
+      [
+        "DOC-9d4449",
+        "L-3769a0"
+      ],
+      [
+        "DOC-9d4449",
+        "L-859081"
+      ]
+    ]
+  },
+  {
+    "issue_id": "ISS-0006",
+    "type": "fx_rate_error",
+    "affected_ids": [
+      "DOC-9d4449"
+    ],
+    "expected_amount_minor": 143219,
+    "currency": "KZT",
+    "valid_evidence_sets": [
+      [
+        "DOC-9d4449",
+        "FX-2026-03-27-EUR-KZT",
+        "L-3769a0"
+      ],
+      [
+        "DOC-9d4449",
+        "FX-2026-03-27-EUR-KZT",
+        "L-859081"
+      ]
+    ]
+  }
+]

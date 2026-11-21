@@ -210,6 +210,13 @@ class LedgerRef:
     role: str
 
 
+@dataclass(frozen=True)
+class FxRef:
+    """Reference to an fx.csv row (its id is derived from its content)."""
+
+    fx_id: str
+
+
 @dataclass
 class Issue:
     """One injected error, expressed with object references."""
@@ -277,6 +284,16 @@ class StorySpec:
     tags: tuple = ()
     window: Optional[str] = None   # "head" | "tail" | "not_late" | None
     max_docs: Optional[int] = None
+    foreign: bool = False          # counterparty must invoice in a foreign currency
+
+
+def _customer(books: "Books", rng: "DetRng", spec: StorySpec) -> "Party":
+    if not spec.foreign:
+        return rng.choice(books.customers)
+    pool = [p for p in books.customers if p.currency != books.ctx.base]
+    if not pool:
+        raise GeneratorError("no foreign-currency customer for a foreign story")
+    return rng.choice(pool)
 
 
 def _tod(rng: DetRng) -> int:
@@ -338,7 +355,7 @@ def _split_amount(rng: DetRng, total: int, parts: int) -> list:
 def _build_open(books: Books, rng: DetRng, spec: StorySpec, max_docs: int) -> int:
     ctx = books.ctx
     story = books.new_story()
-    party = rng.choice(books.customers)
+    party = _customer(books, rng, spec)
     day = _pick_day(ctx, rng, spec.window)
     issued = ctx.start + timedelta(days=day, seconds=_tod(rng))
     inv = _make_invoice(books, rng, party, issued, _make_lines(rng, party.currency), story, spec)
@@ -351,7 +368,7 @@ def _build_paid(books: Books, rng: DetRng, spec: StorySpec, max_docs: int) -> in
         return _build_open(books, rng, spec, max_docs)
     ctx = books.ctx
     story = books.new_story()
-    party = rng.choice(books.customers)
+    party = _customer(books, rng, spec)
     lag = rng.randint(3, min(40, ctx.days - 2))
     day = _pick_day(ctx, rng, spec.window, hi=ctx.days - 1 - lag)
     issued = ctx.start + timedelta(days=day, seconds=_tod(rng))
@@ -368,7 +385,7 @@ def _build_split(books: Books, rng: DetRng, spec: StorySpec, max_docs: int) -> i
         return _build_open(books, rng, spec, max_docs)
     ctx = books.ctx
     story = books.new_story()
-    party = rng.choice(books.customers)
+    party = _customer(books, rng, spec)
     parts = rng.choice((2, 3))
     lags = [rng.randint(3, 12) for _ in range(parts)]
     keep = min(parts, max_docs - 1)
@@ -394,7 +411,7 @@ def _build_return(books: Books, rng: DetRng, spec: StorySpec, max_docs: int) -> 
         return _build_paid(books, rng, spec, max_docs)
     ctx = books.ctx
     story = books.new_story()
-    party = rng.choice(books.customers)
+    party = _customer(books, rng, spec)
     lag_cn = rng.randint(2, 12)
     lag_pay = rng.randint(3, 15)
     day = _pick_day(ctx, rng, spec.window, hi=ctx.days - 1 - lag_cn - lag_pay)
@@ -418,7 +435,7 @@ def _build_combined(books: Books, rng: DetRng, spec: StorySpec, max_docs: int) -
         return _build_paid(books, rng, spec, max_docs)
     ctx = books.ctx
     story = books.new_story()
-    party = rng.choice(books.customers)
+    party = _customer(books, rng, spec)
     gap = rng.randint(0, 10)
     lag = rng.randint(3, 15)
     day1 = _pick_day(ctx, rng, spec.window, hi=ctx.days - 1 - gap - lag)
@@ -441,7 +458,7 @@ def _build_overpaid(books: Books, rng: DetRng, spec: StorySpec, max_docs: int) -
         return _build_open(books, rng, spec, max_docs)
     ctx = books.ctx
     story = books.new_story()
-    party = rng.choice(books.customers)
+    party = _customer(books, rng, spec)
     lag = rng.randint(3, min(30, ctx.days - 2))
     day = _pick_day(ctx, rng, spec.window, hi=ctx.days - 1 - lag)
     issued = ctx.start + timedelta(days=day, seconds=_tod(rng))
@@ -454,13 +471,29 @@ def _build_overpaid(books: Books, rng: DetRng, spec: StorySpec, max_docs: int) -
     return 2
 
 
+def _build_boundary_paid(books: Books, rng: DetRng, spec: StorySpec, max_docs: int) -> int:
+    """Invoice mid-period, paid on the last local evening of the period."""
+    if max_docs < 2:
+        return _build_open(books, rng, spec, max_docs)
+    ctx = books.ctx
+    story = books.new_story()
+    party = _customer(books, rng, spec)
+    day = rng.randint(0, max(0, ctx.days - 10))
+    issued = ctx.start + timedelta(days=day, seconds=_tod(rng))
+    inv = _make_invoice(books, rng, party, issued, _make_lines(rng, party.currency), story, spec)
+    ts = ctx.start + timedelta(days=ctx.days - 1, seconds=rng.randint(20 * 3600, 23 * 3600 + 3000))
+    pay = _make_payment(books, party, ts, [(inv, inv.total_minor)], story)
+    books.log_story(story, "boundary_paid", spec, [inv, pay])
+    return 2
+
+
 def _build_recurring(books: Books, rng: DetRng, spec: StorySpec, max_docs: int) -> int:
     """Legitimate repeated amounts: the same customer billed the same amount 3 times."""
     if max_docs < 3:
         return _build_paid(books, rng, spec, max_docs)
     ctx = books.ctx
     story = books.new_story()
-    party = rng.choice(books.customers)
+    party = _customer(books, rng, spec)
     template = _make_lines(rng, party.currency)
     spacing = rng.randint(7, min(30, (ctx.days - 4) // 2))
     day0 = rng.randint(0, ctx.days - 1 - 2 * spacing)
@@ -492,7 +525,7 @@ def _special_builder(kind: str) -> Callable[[Books, DetRng, StorySpec, int], int
     def build(books: Books, rng: DetRng, spec: StorySpec, max_docs: int) -> int:
         ctx = books.ctx
         story = books.new_story()
-        party = rng.choice(books.customers)
+        party = _customer(books, rng, spec)
         offset: Optional[timezone] = None
         booked = True
         if kind == "boundary_start":
@@ -528,6 +561,7 @@ STORY_BUILDERS: dict = {
     "combined": _build_combined,
     "recurring": _build_recurring,
     "overpaid": _build_overpaid,
+    "boundary_paid": _build_boundary_paid,
     "boundary_start": _special_builder("boundary_start"),
     "boundary_end": _special_builder("boundary_end"),
     "tz_head_utc": _special_builder("tz_head_utc"),
@@ -535,14 +569,15 @@ STORY_BUILDERS: dict = {
     "out_of_prev": _special_builder("out_of_prev"),
 }
 STORY_MIN_DOCS = {"open": 1, "paid": 2, "split": 2, "return": 3, "combined": 3, "recurring": 3,
-                  "overpaid": 2,
+                  "overpaid": 2, "boundary_paid": 2,
                   "boundary_start": 1, "boundary_end": 1, "tz_head_utc": 1,
                   "out_of_next": 1, "out_of_prev": 1}
 STORY_MAX_DOCS = {"open": 1, "paid": 2, "split": 4, "return": 3, "combined": 3, "recurring": 6,
-                  "overpaid": 2,
+                  "overpaid": 2, "boundary_paid": 2,
                   "boundary_start": 1, "boundary_end": 1, "tz_head_utc": 1,
                   "out_of_next": 1, "out_of_prev": 1}
-FORCED_DISTRACTORS = ("recurring", "split", "return", "combined", "overpaid", "boundary_start",
+FORCED_DISTRACTORS = ("recurring", "split", "return", "combined", "overpaid", "boundary_paid",
+                      "boundary_start",
                       "boundary_end", "tz_head_utc", "out_of_next", "out_of_prev")
 REGULAR_WEIGHTS = (("open", 25), ("paid", 40), ("split", 15), ("return", 8),
                    ("combined", 6), ("recurring", 6))
@@ -557,6 +592,10 @@ def _build_parties(books: Books, rng: DetRng) -> None:
         else:
             currency = cfg.base_currency
         books.customers.append(Party(f"CUST-{i:03d}", currency))
+    foreign = sorted(cfg.foreign_currencies)
+    if foreign and sum(p.currency != cfg.base_currency for p in books.customers) < 2:
+        for k, party in enumerate(books.customers[:2]):
+            party.currency = foreign[k % len(foreign)]
     books.suppliers = [f"SUP-{i:03d}" for i in range(1, 7)]
 
 
@@ -995,7 +1034,6 @@ class PeriodCutoffError(Mutator):
         return specs
 
     def apply(self, books: Books, rng: DetRng, ordinal: int) -> Issue:
-        ctx = books.ctx
         candidates = [inv for inv in books.invoices
                       if any(t.startswith(self.TAG) for t in inv.tags)
                       and id(inv) not in books.used and inv.booked_at is not None]
@@ -1004,27 +1042,34 @@ class PeriodCutoffError(Mutator):
         inv = rng.choice(candidates)
         books.used.add(id(inv))
         variant = "late" if f"{self.TAG}:late" in inv.tags else "early"
-        shift = timedelta(seconds=rng.randint(3600, 4 * 86400))
-        terms = inv.due_at - inv.issued_at
-        old_issued, old_due = inv.issued_at, inv.due_at
-        inv.issued_at = ctx.end + shift if variant == "late" else ctx.start - shift
-        inv.due_at = inv.issued_at + terms
-        inv.tags.append("mutation:period_cutoff_error")
-        fmt = lambda dt: S.format_timestamp(dt.astimezone(inv.display_offset))  # noqa: E731
-        mutation = {
-            "type": self.name, "variant": variant, "ordinal": ordinal,
-            "reason": "The invoice document belongs to the "
-                      + ("following" if variant == "late" else "previous")
-                      + " period but its postings stay inside the reporting period.",
-            "ops": [
-                {"op": "set_field", "record": inv, "field": "issued_at",
-                 "old": fmt(old_issued), "new": fmt(inv.issued_at)},
-                {"op": "set_field", "record": inv, "field": "due_at",
-                 "old": fmt(old_due), "new": fmt(inv.due_at)},
-            ],
-        }
-        evidence = [[inv, LedgerRef(inv, "ar")], [inv, LedgerRef(inv, "revenue")]]
-        return Issue(self.name, [inv], inv.total_minor, inv.currency, evidence, mutation)
+        return shift_out_of_period(books, rng, inv, variant, ordinal)
+
+
+def shift_out_of_period(books: Books, rng: DetRng, inv: InvoiceRec, variant: str, ordinal: int,
+                        min_shift_s: int = 3600) -> Issue:
+    """Move the document date of a booked invoice out of the period (postings unchanged)."""
+    ctx = books.ctx
+    shift = timedelta(seconds=rng.randint(min_shift_s, 4 * 86400))
+    terms = inv.due_at - inv.issued_at
+    old_issued, old_due = inv.issued_at, inv.due_at
+    inv.issued_at = ctx.end + shift if variant == "late" else ctx.start - shift
+    inv.due_at = inv.issued_at + terms
+    inv.tags.append("mutation:period_cutoff_error")
+    fmt = lambda dt: S.format_timestamp(dt.astimezone(inv.display_offset))  # noqa: E731
+    mutation = {
+        "type": S.ISSUE_PERIOD_CUTOFF, "variant": variant, "ordinal": ordinal,
+        "reason": "The invoice document belongs to the "
+                  + ("following" if variant == "late" else "previous")
+                  + " period but its postings stay inside the reporting period.",
+        "ops": [
+            {"op": "set_field", "record": inv, "field": "issued_at",
+             "old": fmt(old_issued), "new": fmt(inv.issued_at)},
+            {"op": "set_field", "record": inv, "field": "due_at",
+             "old": fmt(old_due), "new": fmt(inv.due_at)},
+        ],
+    }
+    evidence = [[inv, LedgerRef(inv, "ar")], [inv, LedgerRef(inv, "revenue")]]
+    return Issue(S.ISSUE_PERIOD_CUTOFF, [inv], inv.total_minor, inv.currency, evidence, mutation)
 
 
 class PartialPaymentAllocation(Mutator):
@@ -1066,8 +1111,171 @@ class PartialPaymentAllocation(Mutator):
         return Issue(self.name, [pay, inv], unapplied, pay.currency, evidence, mutation)
 
 
+def fx_row_for(books: Books, currency: str, local: str) -> dict:
+    """The fx.csv row the published rule selects for a local date (latest earlier)."""
+    best = None
+    for row in books.fx:
+        if row["source_currency"] == currency and row["date"][:10] <= local:
+            best = row
+    if best is None:
+        raise GeneratorError("no fx row for the requested date")
+    return best
+
+
+def misdate_rate(books: Books, rng: DetRng, record: Any, purpose: str, ts: datetime,
+                 amount: int, currency: str, wrong_dates: Sequence[tuple], ordinal: int,
+                 affected: list, evidence_roles: Sequence[str]) -> Issue:
+    """Translate one posting at the rate of a wrong date (an fx_rate_error).
+
+    ``wrong_dates`` is a list of (variant, local_date) candidates tried in order;
+    the first one whose rate changes the base amount by more than the matching
+    tolerance is used."""
+    ctx = books.ctx
+    digits = S.SUPPORTED_CURRENCIES
+    right_local = local_date(ts, ctx)
+    right_row = fx_row_for(books, currency, right_local)
+    right_base = S.convert_minor(amount, right_row["rate"], digits[currency], digits[ctx.base])
+    floor = max(100, books.config.amount_tolerance_minor + 1)
+    for variant, wrong_local in wrong_dates:
+        wrong_row = fx_row_for(books, currency, wrong_local)
+        wrong_base = S.convert_minor(amount, wrong_row["rate"], digits[currency], digits[ctx.base])
+        if wrong_row["rate"] != right_row["rate"] and abs(wrong_base - right_base) >= floor:
+            break
+    else:
+        raise GeneratorError("no wrong-date rate changes the posting enough")
+    books.translator.rate_overrides[(id(record), purpose)] = wrong_row["rate"]
+    if hasattr(record, "tags"):
+        record.tags.append("mutation:fx_rate_error")
+    fx_ref = FxRef(S.fx_record_id(right_row))
+    mutation = {
+        "type": S.ISSUE_FX_RATE, "variant": variant, "ordinal": ordinal,
+        "reason": "The posting was translated at the rate of the wrong date; the published "
+                  "rule selects the rate of the company-local date of the posting.",
+        "ops": [{"op": "override_rate", "record": record, "purpose": purpose,
+                 "correct_rate_date": right_row["date"][:10], "correct_rate": right_row["rate"],
+                 "used_rate_date": wrong_row["date"][:10], "used_rate": wrong_row["rate"],
+                 "correct_base_minor": right_base, "posted_base_minor": wrong_base}],
+    }
+    evidence = [[record, LedgerRef(record, role), fx_ref] for role in evidence_roles]
+    return Issue(S.ISSUE_FX_RATE, affected, abs(wrong_base - right_base), ctx.base, evidence, mutation)
+
+
+def _shifted(local: str, days: int) -> str:
+    return (date.fromisoformat(local) + timedelta(days=days)).isoformat()
+
+
+def invoice_wrong_dates(books: Books, rng: DetRng, inv: InvoiceRec) -> list:
+    right = local_date(inv.booked_at, books.ctx)
+    options = [("due_date", local_date(inv.due_at, books.ctx))]
+    options += [("previous_days", _shifted(right, -d)) for d in (1, 2, 3, 4, 5, 6)]
+    options += [("next_days", _shifted(right, d)) for d in (1, 2, 3, 4, 5, 6)]
+    head, tail = options[:1], options[1:]
+    rng.shuffle(tail)
+    return head + tail if rng.chance(40) else tail + head
+
+
+class FxRateError(Mutator):
+    """A foreign-currency invoice is booked at the rate of the wrong date."""
+
+    name = S.ISSUE_FX_RATE
+    TAG = "reserved:fx_rate_error"
+
+    def reserved_specs(self, count: int, rng: DetRng) -> list:
+        return [StorySpec(rng.choice(("open", "paid")), (self.TAG,), max_docs=2, foreign=True)
+                for _ in range(count)]
+
+    def apply(self, books: Books, rng: DetRng, ordinal: int) -> Issue:
+        candidates = [inv for inv in books.invoices
+                      if self.TAG in inv.tags and id(inv) not in books.used
+                      and inv.booked_at is not None and inv.currency != books.ctx.base]
+        if not candidates:
+            raise GeneratorError("no candidate invoice for fx_rate_error")
+        inv = rng.choice(candidates)
+        books.used.add(id(inv))
+        return misdate_rate(books, rng, inv, "booking", inv.booked_at, inv.total_minor, inv.currency,
+                            invoice_wrong_dates(books, rng, inv), ordinal, [inv], ("ar", "revenue"))
+
+
+class Scenario(Mutator):
+    """Interacting errors: one causal story, two linked reference issues."""
+
+    def apply(self, books: Books, rng: DetRng, ordinal: int) -> list:  # type: ignore[override]
+        raise NotImplementedError
+
+
+class PartialFxBoundary(Scenario):
+    """A foreign-currency payment received on the last evening of the period is only
+    partly applied AND its cash is translated at the next day's rate."""
+
+    name = "scenario:partial_fx_boundary"
+    TAG = "reserved:scenario:partial_fx_boundary"
+
+    def reserved_specs(self, count: int, rng: DetRng) -> list:
+        return [StorySpec("boundary_paid", (self.TAG,), max_docs=2, foreign=True) for _ in range(count)]
+
+    def apply(self, books: Books, rng: DetRng, ordinal: int) -> list:  # type: ignore[override]
+        candidates = [pay for pay in books.payments
+                      if id(pay) not in books.used and len(pay.allocations) == 1
+                      and self.TAG in pay.allocations[0][0].tags]
+        if not candidates:
+            raise GeneratorError("no candidate payment for partial_fx_boundary")
+        pay = rng.choice(candidates)
+        inv, amount = pay.allocations[0]
+        books.used.update({id(pay), id(inv)})
+        posted = amount * rng.randint(30, 80) // 100
+        pay.posted = [posted]
+        partial = Issue(
+            S.ISSUE_PARTIAL_PAYMENT, [pay, inv], amount - posted, pay.currency,
+            [[pay, LedgerRef(pay, "unapplied:0")], [pay, LedgerRef(pay, "ar:0")]],
+            {"type": S.ISSUE_PARTIAL_PAYMENT, "variant": "partial_at_period_end", "ordinal": ordinal,
+             "scenario": "partial_fx_boundary",
+             "reason": "Payment received on the last evening of the period was applied only in part.",
+             "ops": [{"op": "set_posted_allocation", "record": pay, "invoice": inv,
+                      "document_amount_minor": amount, "posted_amount_minor": posted}]})
+        right = local_date(pay.ts, books.ctx)
+        wrong = [("next_period_day", _shifted(right, d)) for d in (1, 2, 3, 4, 5, 6)]
+        fx = misdate_rate(books, rng, pay, "cash", pay.ts, pay.amount_minor, pay.currency, wrong,
+                          ordinal, [pay], ("cash",))
+        fx.mutation["scenario"] = "partial_fx_boundary"
+        return [partial, fx]
+
+
+class CutoffFx(Scenario):
+    """An invoice dated in the next period is booked in this one AND translated at the
+    rate of its document date instead of its posting date."""
+
+    name = "scenario:cutoff_fx"
+    TAG = "reserved:scenario:cutoff_fx"
+
+    def reserved_specs(self, count: int, rng: DetRng) -> list:
+        return [StorySpec("open", (self.TAG,), window="tail", max_docs=1, foreign=True)
+                for _ in range(count)]
+
+    def apply(self, books: Books, rng: DetRng, ordinal: int) -> list:  # type: ignore[override]
+        candidates = [inv for inv in books.invoices
+                      if self.TAG in inv.tags and id(inv) not in books.used and inv.booked_at is not None]
+        if not candidates:
+            raise GeneratorError("no candidate invoice for cutoff_fx")
+        inv = rng.choice(candidates)
+        books.used.add(id(inv))
+        cutoff = shift_out_of_period(books, rng, inv, "late", ordinal, min_shift_s=86400)
+        cutoff.mutation["scenario"] = "cutoff_fx"
+        right = local_date(inv.booked_at, books.ctx)
+        doc_day = local_date(inv.issued_at, books.ctx)
+        wrong = [("document_date", doc_day)] + [("document_date_next", _shifted(doc_day, d))
+                                                for d in (1, 2, 3, 4, 5)]
+        fx = misdate_rate(books, rng, inv, "booking", inv.booked_at, inv.total_minor, inv.currency,
+                          wrong, ordinal, [inv], ("ar", "revenue"))
+        fx.mutation["scenario"] = "cutoff_fx"
+        return [cutoff, fx]
+
+
+SCENARIOS: dict = {m.name: m for m in (PartialFxBoundary(), CutoffFx())}
+
+
 MUTATORS: dict = {m.name: m for m in (DuplicateInvoice(), PeriodCutoffError(),
-                                       PartialPaymentAllocation())}
+                                       PartialPaymentAllocation(), FxRateError(),
+                                       *SCENARIOS.values())}
 
 
 # --------------------------------------------------------------------------- #
@@ -1279,6 +1487,8 @@ def _resolve(value: Any, index: dict) -> Any:
         return {"table": "payments", "id": value.doc_id}
     if isinstance(value, LedgerRef):
         return {"table": "ledger", "id": index[(id(value.owner), value.role)].row_id}
+    if isinstance(value, FxRef):
+        return {"table": "fx", "id": value.fx_id}
     if isinstance(value, (list, tuple)):
         return [_resolve(v, index) for v in value]
     if isinstance(value, dict):
@@ -1500,6 +1710,7 @@ def generate_episode(seed: int, config: Any = None, *, id_scheme: Optional[IdSch
     plan_rng.shuffle(types)
     plan = [types[i % len(types)] for i in range(cfg.n_errors)] if cfg.n_errors else []
     plan_rng.shuffle(plan)
+    plan += [f"scenario:{name}" for name in cfg.interactions]
     counts = {name: plan.count(name) for name in sorted(set(plan))}
 
     _build_parties(books, root.fork("parties"))
@@ -1509,8 +1720,10 @@ def generate_episode(seed: int, config: Any = None, *, id_scheme: Optional[IdSch
     clean_checks = _check_books(books, allow_mutations=False)   # before any error exists
 
     mutation_rng = root.fork("mutations")
-    issues = [MUTATORS[name].apply(books, mutation_rng.fork(str(i)), i)
-              for i, name in enumerate(plan)]
+    issues = []
+    for i, name in enumerate(plan):
+        result = MUTATORS[name].apply(books, mutation_rng.fork(str(i)), i)
+        issues.extend(result if isinstance(result, list) else [result])
     _build_filler(books, root.fork("filler"))
     clean_checks["after_errors"] = _check_books(books, allow_mutations=True)
     return _finalize(seed, cfg, episode_id, books, issues, plan, clean_checks,

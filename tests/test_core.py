@@ -215,15 +215,50 @@ def test_files_on_disk_isolation_and_null_mapping(tmp_path):
     assert prov["mutations"] and prov["clean_books_checks"]["balanced"]
 
 
+def _mistranslated_postings(ep) -> dict:
+    """doc_id -> |posted - correct| for invoice bookings and payment cash translated
+    against the published rule, recomputed only from the public files."""
+    base, tz = ep.manifest["base_currency"], S.parse_offset(ep.manifest["timezone"])
+    series: dict = {}
+    for row in ep.fx:
+        series.setdefault(row["source_currency"], []).append((row["date"][:10], row["rate"]))
+
+    def correct(amount, currency, ts):
+        if currency == base:
+            return amount
+        local = parse_ts(ts).astimezone(tz).date().isoformat()
+        rate = max(r for r in series[currency] if r[0] <= local)[1]
+        return S.convert_minor(amount, rate, S.SUPPORTED_CURRENCIES[currency], S.SUPPORTED_CURRENCIES[base])
+
+    by_invoice = {}
+    for d in ep.invoices:
+        by_invoice.setdefault(d["invoice_id"], []).append(d)
+    pays = {d["payment_id"]: d for d in ep.payments}
+    out: dict = {}
+    for r in ep.ledger:
+        if r["account"] == "1100" and r["debit_minor"] > 0 and r["payment_id"] is None:
+            for d in by_invoice[r["invoice_id"]]:
+                diff = abs(r["debit_minor"] - correct(d["total_minor"], d["currency"], r["timestamp"]))
+                if diff:
+                    out[d["doc_id"]] = diff
+        if r["account"] == "1000" and r["payment_id"] is not None:
+            d = pays[r["payment_id"]]
+            diff = abs(r["debit_minor"] - correct(d["amount_minor"], d["currency"], d["timestamp"]))
+            if diff:
+                out[d["doc_id"]] = diff
+    return out
+
+
 def _truth_is_semantically_true(ep) -> None:
     inv = {d["doc_id"]: d for d in ep.invoices}
     ledger = {r["row_id"]: r for r in ep.ledger}
-    known = set(inv) | {d["doc_id"] for d in ep.payments} | set(ledger)
+    known = set(inv) | {d["doc_id"] for d in ep.payments} | set(ledger) | {S.fx_record_id(r) for r in ep.fx}
     start, end = parse_ts(ep.manifest["period_start"]), parse_ts(ep.manifest["period_end"])
     policy_tol = ep.policy["amount_tolerance_minor"]
     assert isinstance(policy_tol, int)
 
-    cutoff_ids, dup_groups, partial_ids = set(), [], set()
+    cutoff_ids, dup_groups, partial_ids, fx_ids = set(), [], set(), set()
+    mistranslated = _mistranslated_postings(ep)
     for t in ep.truth:
         assert t["valid_evidence_sets"] and all(set(s) <= known for s in t["valid_evidence_sets"])
         assert set(t["affected_ids"]) <= known
@@ -238,6 +273,13 @@ def _truth_is_semantically_true(ep) -> None:
                 if ev[0] in ledger:
                     rows = [ledger[i] for i in ev]
                     assert len({r["invoice_id"] for r in rows}) == 1
+        elif t["type"] == "fx_rate_error":
+            (doc_id,) = t["affected_ids"]
+            assert t["currency"] == ep.manifest["base_currency"]
+            assert mistranslated[doc_id] == t["expected_amount_minor"] > policy_tol
+            fx_ids.add(doc_id)
+            for ev in t["valid_evidence_sets"]:
+                assert doc_id in ev and any(i.startswith("FX-") for i in ev) and any(i in ledger for i in ev)
         elif t["type"] == "partial_payment_allocation":
             pays = {d["doc_id"]: d for d in ep.payments}
             pay = next(pays[i] for i in t["affected_ids"] if i in pays)
@@ -277,6 +319,7 @@ def _truth_is_semantically_true(ep) -> None:
     suspicious = {p["payment_id"] for p in ep.payments if p["payment_id"] in with_unapplied
                   and p["amount_minor"] <= sum(totals[i] for i in p["invoice_refs"])}
     assert suspicious == partial_ids
+    assert set(mistranslated) == fx_ids
     groups: dict = {}
     for d in ep.invoices:
         groups.setdefault((d["entity_id"], d["issued_at"], d["currency"], d["total_minor"]), set()).add(d["doc_id"])

@@ -1,0 +1,14 @@
+{
+  "config_version": "1.2",
+  "seed": 2009,
+  "config": {
+    "n_ledger_rows": 500,
+    "n_documents": 64,
+    "n_errors": 4,
+    "timezone": "+00:00",
+    "period_start": "2026-07-01",
+    "period_days": 31,
+    "id_scheme": "randomized",
+    "id_salt": 14064
+  }
+}

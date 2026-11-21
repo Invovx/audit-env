@@ -1,0 +1,106 @@
+[
+  {
+    "issue_id": "ISS-0001",
+    "type": "partial_payment_allocation",
+    "affected_ids": [
+      "DOC-00005",
+      "DOC-00010"
+    ],
+    "expected_amount_minor": 193250,
+    "currency": "EUR",
+    "valid_evidence_sets": [
+      [
+        "DOC-00010",
+        "L000074"
+      ]
+    ]
+  },
+  {
+    "issue_id": "ISS-0002",
+    "type": "duplicate_invoice",
+    "affected_ids": [
+      "DOC-00069",
+      "DOC-00070"
+    ],
+    "expected_amount_minor": 196000,
+    "currency": "USD",
+    "valid_evidence_sets": [
+      [
+        "DOC-00069",
+        "DOC-00070"
+      ],
+      [
+        "L000591",
+        "L000603"
+      ],
+      [
+        "L000592",
+        "L000604"
+      ]
+    ]
+  },
+  {
+    "issue_id": "ISS-0003",
+    "type": "period_cutoff_error",
+    "affected_ids": [
+      "DOC-00079"
+    ],
+    "expected_amount_minor": 1976000,
+    "currency": "EUR",
+    "valid_evidence_sets": [
+      [
+        "DOC-00079",
+        "L000663"
+      ],
+      [
+        "DOC-00079",
+        "L000664"
+      ]
+    ]
+  },
+  {
+    "issue_id": "ISS-0004",
+    "type": "fx_rate_error",
+    "affected_ids": [
+      "DOC-00062"
+    ],
+    "expected_amount_minor": 5394,
+    "currency": "USD",
+    "valid_evidence_sets": [
+      [
+        "DOC-00062",
+        "FX-2026-03-10-EUR-USD",
+        "L000522"
+      ],
+      [
+        "DOC-00062",
+        "FX-2026-03-10-EUR-USD",
+        "L000523"
+      ]
+    ]
+  },
+  {
+    "issue_id": "ISS-0005",
+    "type": "duplicate_invoice",
+    "affected_ids": [
+      "DOC-00032",
+      "DOC-00033"
+    ],
+    "expected_amount_minor": 1742000,
+    "currency": "USD",
+    "valid_evidence_sets": [
+      [
+        "DOC-00032",
+        "DOC-00033"
+      ],
+      [
+        "L000294",
+        "L000312"
+      ],
+      [
+        "L000295",
+        "L000313"
+      ]
+    ]
+  }
+]
