@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import shutil
 import json
 import statistics
 import subprocess
@@ -81,6 +82,7 @@ def main() -> int:
 
     print("\n[2/4] generating open episodes")
     ART.mkdir(exist_ok=True)
+    shutil.rmtree(ART / "episodes", ignore_errors=True)      # only the current open episodes are kept
     episodes = []
     digest = hashlib.sha256()
     for split in SPLITS:

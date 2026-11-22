@@ -1,9 +1,0 @@
-{
-  "config_version": "1.0",
-  "seed": 1000,
-  "config": {
-    "n_ledger_rows": 400,
-    "n_documents": 48,
-    "n_errors": 0
-  }
-}
